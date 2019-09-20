@@ -11,49 +11,62 @@ src
 PROJ_INCLUDE_DIRS := \
 src
 
-# List the subdirectories for Atmel source and header files
-ATMEL_SRC_DIRS :=  \
-asf4 \
-asf4/hpl/systick \
-asf4/hpl/dmac \
-asf4/hal/src \
-asf4/samd21a/gcc \
-asf4/hpl/pm \
-asf4/hpl/sysctrl \
-asf4/hal/utils/src \
-asf4/examples \
-asf4/hpl/gclk \
-asf4/samd21a/gcc/gcc \
-asf4/hpl/core
+# Specify the dir for the ASF library
+ASF_DIR := asf-samd21
 
+# List the subdirectories for Atmel source and header files
+# Copy this directly from SUB_DIRS in $(ASF_DIR)/gcc/Makefile,
+# but make sure to add ./
+ATMEL_SRC_DIRS :=  \
+./ \
+hpl/systick \
+hpl/dmac \
+hal/src \
+samd21a/gcc \
+hpl/pm \
+hpl/sysctrl \
+hal/utils/src \
+examples \
+hpl/gclk \
+samd21a/gcc/gcc \
+hpl/core
+
+# Add these based on DIR_INCLUDES in $(ASF_DIR)/gcc/Makefile,
+# by copying it here and replacing '-I"../' with '' (nothing),
+# making sure to include ./
+# Alternatively, derive this based on ATMEL_SRC_DIRS above
+# if DIR_INCLUDES doesn't exist
 ATMEL_INCLUDE_DIRS := \
-asf4 \
-asf4/config \
-asf4/examples \
-asf4/hal/include \
-asf4/hal/utils/include  \
-asf4/hpl/core  \
-asf4/hpl/dmac  \
-asf4/hpl/gclk  \
-asf4/hpl/pm  \
-asf4/hpl/port  \
-asf4/hpl/sysctrl  \
-asf4/hpl/systick  \
-asf4/hri  \
-asf4/CMSIS/Include  \
-asf4/samd21a/include  \
+./ \
+config \
+examples \
+hal/include \
+hal/utils/include  \
+hpl/core  \
+hpl/dmac  \
+hpl/gclk  \
+hpl/pm  \
+hpl/port  \
+hpl/sysctrl  \
+hpl/systick  \
+hri  \
+CMSIS/Include  \
+samd21a/include  \
 
 # Top-level directories make should look for things in
-vpath %.c src/ asf4/
-vpath %.s src/ asf4/
-vpath %.S src/ asf4/
+vpath %.c src/ $(ASF_DIR)/
+vpath %.s src/ $(ASF_DIR)/
+vpath %.S src/ $(ASF_DIR)/
 
 ############# Misc configuration #############
-OUTPUT_FILE_NAME := AtmelStart
+# CHANGE ME
+OUTPUT_FILES_PREFIX := build/bse-fsw-template
+OBJ_DIR := obj
+GCC_ARGS := -x c -mthumb -DDEBUG -O0 -ffunction-sections -mlong-calls -g3 -Wall -c -std=gnu99
 
 ############# Device configuration #############
 # not sure if changing these will work
-DEVICE_LINKER_SCRIPT := asf4/samd21a/gcc/gcc/samd21j18a_flash.ld
+DEVICE_LINKER_SCRIPT := $(ASF_DIR)/samd21a/gcc/gcc/samd21j18a_flash.ld
 MCPU := cortex-m0plus
 DEVICE_FLAG := __SAMD21J18A__
 
@@ -61,104 +74,75 @@ DEVICE_FLAG := __SAMD21J18A__
 # Variable generation. Do not edit unless you know what you're doing!
 ################################################################################
 
+# Prefix atmel dirs with root dir
+ATMEL_SRC_DIRS_FULL 	:= $(addprefix $(ASF_DIR)/, $(ATMEL_SRC_DIRS))
+ATMEL_INCLUDE_DIRS_FULL := $(addprefix $(ASF_DIR)/, $(ATMEL_INCLUDE_DIRS))
+
 # Find all source files in the directories
-ALL_SRC_DIRS := $(PROJ_SRC_DIRS) $(ATMEL_SRC_DIRS)
-SRC  := $(foreach dr, $(ALL_SRC_DIRS), $(wildcard $(dr)/*.[cS]))
+ALL_SRC_DIRS := $(PROJ_SRC_DIRS) $(ATMEL_SRC_DIRS_FULL)
+SRCS  := $(foreach dr, $(ALL_SRC_DIRS), $(wildcard $(dr)/*.[csS]))
 # Create all names of all corresponding object files
-OBJS := $(addsuffix .o,$(basename $(SRC)))
+OBJS := $(addprefix $(OBJ_DIR)/, $(addsuffix .o, $(basename $(SRCS))))
 OBJS_AS_ARGS := $(foreach ob, $(OBJS), "$(ob)")
 # Create all names of all corresponding dependency files
 DEPS := $(OBJS:%.o=%.d)
 DEPS_AS_ARGS := $(foreach dep, $(DEPS), "$(dep)")
+
 # List the include files as linker args
-ALL_INCLUDE_DIRS := $(PROJ_INCLUDE_DIRS) $(ATMEL_INCLUDE_DIRS)
+ALL_INCLUDE_DIRS := $(PROJ_INCLUDE_DIRS) $(ATMEL_INCLUDE_DIRS_FULL)
 INCLUDE_DIRS_AS_FLAGS := $(foreach dir, $(ALL_INCLUDE_DIRS), -I"$(dir)")
 
 # Outputs
-OUTPUT_FILE_PATH += $(OUTPUT_FILE_NAME).elf
+OUTPUT_FILE_PATH += $(OUTPUT_FILES_PREFIX).elf
 OUTPUT_FILE_PATH_AS_ARGS += $(OUTPUT_FILE_PATH)
 
 ################################################################################
 # Makefile targets. Do not edit unless you know what you're doing!
 ################################################################################
-QUOTE := "
+GCC := "arm-none-eabi-gcc"
+GCC_ARGS += -D$(DEVICE_FLAG) -mcpu=$(MCPU)
+LINKER_ARGS += 
 
 ifdef SystemRoot
 	SHELL = cmd.exe
 	MK_DIR = mkdir
 else
-	ifeq ($(shell uname), Linux)
-		MK_DIR = mkdir -p
-	endif
-
-	ifeq ($(shell uname | cut -d _ -f 1), CYGWIN)
-		MK_DIR = mkdir -p
-	endif
-
-	ifeq ($(shell uname | cut -d _ -f 1), MINGW32)
-		MK_DIR = mkdir -p
-	endif
-
-	ifeq ($(shell uname | cut -d _ -f 1), MINGW64)
-		MK_DIR = mkdir -p
-	endif
+	MK_DIR = mkdir -p
 endif
 
-
 # All Target
-all: $(ALL_DIRS) $(OUTPUT_FILE_PATH)
+all: $(ALL_DIRS) $(OUTPUT_FILE_PATH) $(OBJS)
+
+$(ALL_DIRS):
+	$(MK_DIR) "$@"
 
 # Linker target
-
 $(OUTPUT_FILE_PATH): $(OBJS)
-	@echo Building target: $@
-	@echo Invoking: ARM/GNU Linker
-		$(QUOTE)arm-none-eabi-gcc$(QUOTE) -o $(OUTPUT_FILE_NAME).elf $(OBJS_AS_ARGS) \
+	@echo Linking target: $@
+	@mkdir -p $(dir $@)
+	$(GCC) -o $(OUTPUT_FILES_PREFIX).elf $(OBJS_AS_ARGS) \
 		-Wl,--start-group -lm -Wl,--end-group -mthumb \
-		-Wl,-Map="$(OUTPUT_FILE_NAME).map" --specs=nano.specs -Wl,--gc-sections -mcpu=$(MCPU) \
+		-Wl,-Map="$(OUTPUT_FILES_PREFIX).map" --specs=nano.specs -Wl,--gc-sections -mcpu=$(MCPU) \
 	 	$(INCLUDE_DIRS_AS_FLAGS) \
 		-T"$(DEVICE_LINKER_SCRIPT)" \
 		-L"$(basename $(DEVICE_LINKER_SCRIPT))"
 	@echo Finished building target: $@
 
-	"arm-none-eabi-objcopy" -O binary "$(OUTPUT_FILE_NAME).elf" "$(OUTPUT_FILE_NAME).bin"
+	"arm-none-eabi-objcopy" -O binary "$(OUTPUT_FILES_PREFIX).elf" "$(OUTPUT_FILES_PREFIX).bin"
 	"arm-none-eabi-objcopy" -O ihex -R .eeprom -R .fuse -R .lock -R .signature  \
-        "$(OUTPUT_FILE_NAME).elf" "$(OUTPUT_FILE_NAME).hex"
+        "$(OUTPUT_FILES_PREFIX).elf" "$(OUTPUT_FILES_PREFIX).hex"
 	"arm-none-eabi-objcopy" -j .eeprom --set-section-flags=.eeprom=alloc,load --change-section-lma \
-        .eeprom=0 --no-change-warnings -O binary "$(OUTPUT_FILE_NAME).elf" \
-        "$(OUTPUT_FILE_NAME).eep" || exit 0
-	"arm-none-eabi-objdump" -h -S "$(OUTPUT_FILE_NAME).elf" > "$(OUTPUT_FILE_NAME).lss"
-	"arm-none-eabi-size" "$(OUTPUT_FILE_NAME).elf"
+        .eeprom=0 --no-change-warnings -O binary "$(OUTPUT_FILES_PREFIX).elf" \
+        "$(OUTPUT_FILES_PREFIX).eep" || exit 0
+	"arm-none-eabi-objdump" -h -S "$(OUTPUT_FILES_PREFIX).elf" > "$(OUTPUT_FILES_PREFIX).lss"
+	"arm-none-eabi-size" "$(OUTPUT_FILES_PREFIX).elf"
 
-
-
-# Compiler targets
-
-%.o: %.c
-	@echo Building .c file: $<
-	@echo ARM/GNU C Compiler
-	$(QUOTE)arm-none-eabi-gcc$(QUOTE) -x c -mthumb -DDEBUG -Os -ffunction-sections -mlong-calls -g3 -Wall -c -std=gnu99 \
-		-D$(DEVICE_FLAG) -mcpu=$(MCPU)  \
-		$(INCLUDE_DIRS_AS_FLAGS) \
-		-MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"  -o "$@" "$<"
-	@echo Finished building: $<
-
-%.o: %.s
-	@echo Building .s file: $<
-	@echo ARM/GNU Assembler
-	$(QUOTE)arm-none-eabi-as$(QUOTE) -x c -mthumb -DDEBUG -Os -ffunction-sections -mlong-calls -g3 -Wall -c -std=gnu99 \
-		-D$(DEVICE_FLAG) -mcpu=$(MCPU)  \
-		$(INCLUDE_DIRS_AS_FLAGS) \
-		-MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"  -o "$@" "$<"
-	@echo Finished building: $<
-
-%.o: %.S
-	@echo Building .S file: $<
-	@echo ARM/GNU Preprocessing Assembler
-	$(QUOTE)arm-none-eabi-gcc$(QUOTE) -x c -mthumb -DDEBUG -Os -ffunction-sections -mlong-calls -g3 -Wall -c -std=gnu99 \
-		-D$(DEVICE_FLAG) -mcpu=$(MCPU)  \
-		$(INCLUDE_DIRS_AS_FLAGS) \
-		-MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"  -o "$@" "$<"
+# Compiler target
+$(OBJ_DIR)/%.o: %.[csS]
+	@echo Building file: $<
+	@mkdir -p $(dir $@)
+	$(GCC) $(GCC_ARGS) $(INCLUDE_DIRS_AS_FLAGS) \
+		-MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)" -o "$@" "$<"
 	@echo Finished building: $<
 
 # Detect changes in the dependent files and recompile the respective object files.
@@ -168,13 +152,15 @@ ifneq ($(strip $(DEPS)),)
 endif
 endif
 
-$(ALL_DIRS):
-	$(MK_DIR) "$@"
+connect:
+	@echo Make sure openocd is running!
+	arm-none-eabi-gdb -iex "target extended-remote localhost:3333" $(OUTPUT_FILE_PATH)
 
 clean:
 	rm -f $(OBJS_AS_ARGS)
 	rm -f $(OUTPUT_FILE_PATH)
 	rm -f $(DEPS_AS_ARGS)
-	rm -f $(OUTPUT_FILE_NAME).a $(OUTPUT_FILE_NAME).hex $(OUTPUT_FILE_NAME).bin \
-        $(OUTPUT_FILE_NAME).lss $(OUTPUT_FILE_NAME).eep $(OUTPUT_FILE_NAME).map \
-        $(OUTPUT_FILE_NAME).srec
+	rm -rf $(OBJ_DIR)
+	rm -f $(OUTPUT_FILES_PREFIX).a $(OUTPUT_FILES_PREFIX).hex $(OUTPUT_FILES_PREFIX).bin \
+        $(OUTPUT_FILES_PREFIX).lss $(OUTPUT_FILES_PREFIX).eep $(OUTPUT_FILES_PREFIX).map \
+        $(OUTPUT_FILES_PREFIX).srec
