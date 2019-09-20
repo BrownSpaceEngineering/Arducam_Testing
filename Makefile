@@ -1,105 +1,87 @@
-# START COPY FROM asf4/gcc/Makefile
+# Generic Makefile for Atmel Start projects
 
-# List the subdirectories for creating object files
-SUB_DIRS +=  \
- \
-hpl/systick \
-hpl/dmac \
-hal/src \
-samd21a/gcc \
-hpl/pm \
-hpl/sysctrl \
-hal/utils/src \
-examples \
-hpl/gclk \
-samd21a/gcc/gcc \
-hpl/core
+################################################################################
+# Project configuration (edit if you add directories)
+################################################################################
 
-# List the object files
-OBJS +=  \
-hal/src/hal_io.o \
-hpl/systick/hpl_systick.o \
-samd21a/gcc/gcc/startup_samd21.o \
-hal/utils/src/utils_syscalls.o \
-hal/src/hal_delay.o \
-hpl/pm/hpl_pm.o \
-hpl/core/hpl_init.o \
-samd21a/gcc/system_samd21.o \
-hpl/core/hpl_core_m0plus_base.o \
-hal/utils/src/utils_assert.o \
-hpl/dmac/hpl_dmac.o \
-hpl/sysctrl/hpl_sysctrl.o \
-hpl/gclk/hpl_gclk.o \
-hal/src/hal_init.o \
-main.o \
-hal/utils/src/utils_list.o \
-examples/driver_examples.o \
-driver_init.o \
-hal/src/hal_gpio.o \
-hal/utils/src/utils_event.o \
-hal/src/hal_sleep.o \
-atmel_start.o \
-hal/src/hal_atomic.o
+# List the subdirectories for project source and header files
+PROJ_SRC_DIRS := \
+src
 
-OBJS_AS_ARGS +=  \
-"hal/src/hal_io.o" \
-"hpl/systick/hpl_systick.o" \
-"samd21a/gcc/gcc/startup_samd21.o" \
-"hal/utils/src/utils_syscalls.o" \
-"hal/src/hal_delay.o" \
-"hpl/pm/hpl_pm.o" \
-"hpl/core/hpl_init.o" \
-"samd21a/gcc/system_samd21.o" \
-"hpl/core/hpl_core_m0plus_base.o" \
-"hal/utils/src/utils_assert.o" \
-"hpl/dmac/hpl_dmac.o" \
-"hpl/sysctrl/hpl_sysctrl.o" \
-"hpl/gclk/hpl_gclk.o" \
-"hal/src/hal_init.o" \
-"main.o" \
-"hal/utils/src/utils_list.o" \
-"examples/driver_examples.o" \
-"driver_init.o" \
-"hal/src/hal_gpio.o" \
-"hal/utils/src/utils_event.o" \
-"hal/src/hal_sleep.o" \
-"atmel_start.o" \
-"hal/src/hal_atomic.o"
+PROJ_INCLUDE_DIRS := \
+src
 
-# List the dependency files
+# List the subdirectories for Atmel source and header files
+ATMEL_SRC_DIRS :=  \
+asf4 \
+asf4/hpl/systick \
+asf4/hpl/dmac \
+asf4/hal/src \
+asf4/samd21a/gcc \
+asf4/hpl/pm \
+asf4/hpl/sysctrl \
+asf4/hal/utils/src \
+asf4/examples \
+asf4/hpl/gclk \
+asf4/samd21a/gcc/gcc \
+asf4/hpl/core
+
+ATMEL_INCLUDE_DIRS := \
+asf4 \
+asf4/config \
+asf4/examples \
+asf4/hal/include \
+asf4/hal/utils/include  \
+asf4/hpl/core  \
+asf4/hpl/dmac  \
+asf4/hpl/gclk  \
+asf4/hpl/pm  \
+asf4/hpl/port  \
+asf4/hpl/sysctrl  \
+asf4/hpl/systick  \
+asf4/hri  \
+asf4/CMSIS/Include  \
+asf4/samd21a/include  \
+
+# Top-level directories make should look for things in
+vpath %.c src/ asf4/
+vpath %.s src/ asf4/
+vpath %.S src/ asf4/
+
+############# Misc configuration #############
+OUTPUT_FILE_NAME := AtmelStart
+
+############# Device configuration #############
+# not sure if changing these will work
+DEVICE_LINKER_SCRIPT := asf4/samd21a/gcc/gcc/samd21j18a_flash.ld
+MCPU := cortex-m0plus
+DEVICE_FLAG := __SAMD21J18A__
+
+################################################################################
+# Variable generation. Do not edit unless you know what you're doing!
+################################################################################
+
+# Find all source files in the directories
+ALL_SRC_DIRS := $(PROJ_SRC_DIRS) $(ATMEL_SRC_DIRS)
+SRC  := $(foreach dr, $(ALL_SRC_DIRS), $(wildcard $(dr)/*.[cS]))
+# Create all names of all corresponding object files
+OBJS := $(addsuffix .o,$(basename $(SRC)))
+OBJS_AS_ARGS := $(foreach ob, $(OBJS), "$(ob)")
+# Create all names of all corresponding dependency files
 DEPS := $(OBJS:%.o=%.d)
+DEPS_AS_ARGS := $(foreach dep, $(DEPS), "$(dep)")
+# List the include files as linker args
+ALL_INCLUDE_DIRS := $(PROJ_INCLUDE_DIRS) $(ATMEL_INCLUDE_DIRS)
+INCLUDE_DIRS_AS_FLAGS := $(foreach dir, $(ALL_INCLUDE_DIRS), -I"$(dir)")
 
-DEPS_AS_ARGS +=  \
-"samd21a/gcc/gcc/startup_samd21.d" \
-"hal/src/hal_gpio.d" \
-"hal/src/hal_io.d" \
-"hpl/systick/hpl_systick.d" \
-"hal/utils/src/utils_syscalls.d" \
-"hpl/core/hpl_core_m0plus_base.d" \
-"hal/utils/src/utils_list.d" \
-"hpl/dmac/hpl_dmac.d" \
-"hal/utils/src/utils_assert.d" \
-"hal/src/hal_delay.d" \
-"hpl/core/hpl_init.d" \
-"hpl/sysctrl/hpl_sysctrl.d" \
-"hpl/gclk/hpl_gclk.d" \
-"hal/src/hal_init.d" \
-"driver_init.d" \
-"samd21a/gcc/system_samd21.d" \
-"main.d" \
-"examples/driver_examples.d" \
-"hal/src/hal_sleep.d" \
-"hal/utils/src/utils_event.d" \
-"hal/src/hal_atomic.d" \
-"hpl/pm/hpl_pm.d" \
-"atmel_start.d"
-
-# END COPY FROM asf4/gcc/Makefile
-
+# Outputs
+OUTPUT_FILE_PATH += $(OUTPUT_FILE_NAME).elf
+OUTPUT_FILE_PATH_AS_ARGS += $(OUTPUT_FILE_PATH)
 
 ################################################################################
-# Automatically-generated file. Do not edit!
+# Makefile targets. Do not edit unless you know what you're doing!
 ################################################################################
+QUOTE := "
 
 ifdef SystemRoot
 	SHELL = cmd.exe
@@ -123,29 +105,20 @@ else
 endif
 
 
-
-OUTPUT_FILE_NAME :=AtmelStart
-QUOTE := "
-OUTPUT_FILE_PATH +=$(OUTPUT_FILE_NAME).elf
-OUTPUT_FILE_PATH_AS_ARGS +=$(OUTPUT_FILE_NAME).elf
-
-vpath %.c ../
-vpath %.s ../
-vpath %.S ../
-
 # All Target
-all: $(SUB_DIRS) $(OUTPUT_FILE_PATH)
+all: $(ALL_DIRS) $(OUTPUT_FILE_PATH)
 
 # Linker target
 
 $(OUTPUT_FILE_PATH): $(OBJS)
 	@echo Building target: $@
 	@echo Invoking: ARM/GNU Linker
-	$(QUOTE)arm-none-eabi-gcc$(QUOTE) -o $(OUTPUT_FILE_NAME).elf $(OBJS_AS_ARGS) -Wl,--start-group -lm -Wl,--end-group -mthumb \
--Wl,-Map="$(OUTPUT_FILE_NAME).map" --specs=nano.specs -Wl,--gc-sections -mcpu=cortex-m0plus \
- \
--T"../samd21a/gcc/gcc/samd21j18a_flash.ld" \
--L"../samd21a/gcc/gcc"
+		$(QUOTE)arm-none-eabi-gcc$(QUOTE) -o $(OUTPUT_FILE_NAME).elf $(OBJS_AS_ARGS) \
+		-Wl,--start-group -lm -Wl,--end-group -mthumb \
+		-Wl,-Map="$(OUTPUT_FILE_NAME).map" --specs=nano.specs -Wl,--gc-sections -mcpu=$(MCPU) \
+	 	$(INCLUDE_DIRS_AS_FLAGS) \
+		-T"$(DEVICE_LINKER_SCRIPT)" \
+		-L"$(basename $(DEVICE_LINKER_SCRIPT))"
 	@echo Finished building target: $@
 
 	"arm-none-eabi-objcopy" -O binary "$(OUTPUT_FILE_NAME).elf" "$(OUTPUT_FILE_NAME).bin"
@@ -157,38 +130,35 @@ $(OUTPUT_FILE_PATH): $(OBJS)
 	"arm-none-eabi-objdump" -h -S "$(OUTPUT_FILE_NAME).elf" > "$(OUTPUT_FILE_NAME).lss"
 	"arm-none-eabi-size" "$(OUTPUT_FILE_NAME).elf"
 
-	
+
 
 # Compiler targets
 
-
-
-
 %.o: %.c
-	@echo Building file: $<
+	@echo Building .c file: $<
 	@echo ARM/GNU C Compiler
 	$(QUOTE)arm-none-eabi-gcc$(QUOTE) -x c -mthumb -DDEBUG -Os -ffunction-sections -mlong-calls -g3 -Wall -c -std=gnu99 \
--D__SAMD21J18A__ -mcpu=cortex-m0plus  \
--I"../" -I"../config" -I"../examples" -I"../hal/include" -I"../hal/utils/include" -I"../hpl/core" -I"../hpl/dmac" -I"../hpl/gclk" -I"../hpl/pm" -I"../hpl/port" -I"../hpl/sysctrl" -I"../hpl/systick" -I"../hri" -I"../" -I"../CMSIS/Include" -I"../samd21a/include"  \
--MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"  -o "$@" "$<"
+		-D$(DEVICE_FLAG) -mcpu=$(MCPU)  \
+		$(INCLUDE_DIRS_AS_FLAGS) \
+		-MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"  -o "$@" "$<"
 	@echo Finished building: $<
 
 %.o: %.s
-	@echo Building file: $<
+	@echo Building .s file: $<
 	@echo ARM/GNU Assembler
 	$(QUOTE)arm-none-eabi-as$(QUOTE) -x c -mthumb -DDEBUG -Os -ffunction-sections -mlong-calls -g3 -Wall -c -std=gnu99 \
--D__SAMD21J18A__ -mcpu=cortex-m0plus  \
--I"../" -I"../config" -I"../examples" -I"../hal/include" -I"../hal/utils/include" -I"../hpl/core" -I"../hpl/dmac" -I"../hpl/gclk" -I"../hpl/pm" -I"../hpl/port" -I"../hpl/sysctrl" -I"../hpl/systick" -I"../hri" -I"../" -I"../CMSIS/Include" -I"../samd21a/include"  \
--MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"  -o "$@" "$<"
+		-D$(DEVICE_FLAG) -mcpu=$(MCPU)  \
+		$(INCLUDE_DIRS_AS_FLAGS) \
+		-MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"  -o "$@" "$<"
 	@echo Finished building: $<
 
 %.o: %.S
-	@echo Building file: $<
+	@echo Building .S file: $<
 	@echo ARM/GNU Preprocessing Assembler
 	$(QUOTE)arm-none-eabi-gcc$(QUOTE) -x c -mthumb -DDEBUG -Os -ffunction-sections -mlong-calls -g3 -Wall -c -std=gnu99 \
--D__SAMD21J18A__ -mcpu=cortex-m0plus  \
--I"../" -I"../config" -I"../examples" -I"../hal/include" -I"../hal/utils/include" -I"../hpl/core" -I"../hpl/dmac" -I"../hpl/gclk" -I"../hpl/pm" -I"../hpl/port" -I"../hpl/sysctrl" -I"../hpl/systick" -I"../hri" -I"../" -I"../CMSIS/Include" -I"../samd21a/include"  \
--MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"  -o "$@" "$<"
+		-D$(DEVICE_FLAG) -mcpu=$(MCPU)  \
+		$(INCLUDE_DIRS_AS_FLAGS) \
+		-MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"  -o "$@" "$<"
 	@echo Finished building: $<
 
 # Detect changes in the dependent files and recompile the respective object files.
@@ -198,7 +168,7 @@ ifneq ($(strip $(DEPS)),)
 endif
 endif
 
-$(SUB_DIRS):
+$(ALL_DIRS):
 	$(MK_DIR) "$@"
 
 clean:
