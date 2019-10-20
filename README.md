@@ -1,6 +1,8 @@
 # bse-fsw-template
 A template project for BSE flight software projects. Built to work with Atmel START generated ASF4 projects, on the Atmel SAMD21J18A processor.
 
+Note: the Atmel START library in this repo is the bearbones minimal configuration; projects using this template should add required components and libraries.
+
 ## Building
 Run `make`. The produced binaries will end up in `build/`
 
@@ -53,7 +55,7 @@ brew install gcc-arm-none-eabi-80
 
 ## Changing ASF library configuration
 Follow this procedure if you'd like to add Atmel Start ASF libraries, change chip configuration or pinout, etc.
-1. Go to [start.atmel.com](start.atmel.com)
+1. Go to [start.atmel.com](https://start.atmel.com)
 2. Click on "Load project from file" and upload `./asf-samd21/atmel_start_config.atstart`
 4. As desired, add software components, configure pinmux, package, or clocks
 5. Click "Export project", make sure "Makefile (standalone)" is selected, and click "Download pack"
