@@ -32,8 +32,10 @@ samd21a/gcc/gcc \
 hpl/core
 
 # Add these based on DIR_INCLUDES in $(ASF_DIR)/gcc/Makefile,
-# by copying it here and replacing '-I"../' with '' (nothing),
-# making sure to include ./
+# by copying the lines after that variable here and performing the following:
+# 1) Replace '-I"../' with '' (nothing)
+# 2) Replace the trailing '"' characters by replacing '" \' with ' \'. 
+# 3) Make sure to include ./ by adding './ \'
 # Alternatively, derive this based on ATMEL_SRC_DIRS above
 # if DIR_INCLUDES doesn't exist
 ATMEL_INCLUDE_DIRS := \
