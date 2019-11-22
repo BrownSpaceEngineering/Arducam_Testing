@@ -24,8 +24,9 @@ Tips:
 ### Windows
 1. Install [Chocolatey](https://chocolatey.org/install#installing-chocolatey)
 2. Run `choco install make` from a shell with administrator priveledges (right click -> Run as administrator)
-3. Download and extract the [Atmel ARM GNU toolchain](https://www.microchip.com/mplab/avr-support/avr-and-arm-toolchains-c-compilers) and add it to your path (e.g. Control Panel -> System -> Advanced system settings -> Environment variables -> Path -> Edit -> New -> `C:\Users\<username>\<path>\arm-none-eabi\bin`).
-4. Download and extract the newest Windows version of OpenOCD from [here](https://github.com/gnu-mcu-eclipse/openocd/releases) and add the bin folder to your path (e.g. `C:\Users\<username>\<path>\openocd-0.10.0\bin`). If you have trouble with that version you can also use [this site](http://www.freddiechopin.info/en/download/category/4-openocd) (you'll need something like [7-Zip](https://www.7-zip.org/)).
+3. Download and extract the "Arm GNU Toolchain for 32-bit Devices" for Windows from [here](https://www.microchip.com/mplab/avr-support/avr-and-arm-toolchains-c-compilers) and add it to your path (e.g. Control Panel -> System -> Advanced system settings -> Environment variables -> Path -> Edit -> New -> `C:\Users\<username>\<path>\arm-none-eabi\bin`).
+4. Download and extract the newest Windows version of OpenOCD from [here](https://github.com/xpack-dev-tools/openocd-xpack/releases) and add the bin folder to your path (e.g. `C:\Users\<username>\<path>\openocd-0.10.0\bin`). 
+If you have trouble with that version you can also use [this site](http://www.freddiechopin.info/en/download/category/4-openocd) (you'll need something like [7-Zip](https://www.7-zip.org/)).
 
 ### Mac OSX
 1. Install homebrew [here](https://brew.sh/)
@@ -51,7 +52,7 @@ brew install gcc-arm-none-eabi-80
 ### Linux (other distributions)
 1. openocd is probably in your package manager, but if not there are instructions [here](http://openocd.org/getting-openocd/). Make sure to put (or symlink) the bin folder in your path.
 2. You may need to follow the instructions above to add the udev rules.
-3. Install the ARM GNU toolchain from [here](https://www.microchip.com/mplab/avr-support/avr-and-arm-toolchains-c-compilers), and put (or symlink) the bin folder in your path (it may also be in your package manager).
+3. Install the "Arm GNU Toolchain for 32-bit Devices" for Linux from [here](https://www.microchip.com/mplab/avr-support/avr-and-arm-toolchains-c-compilers), and put (or symlink) the bin folder in your path (it may also be in your package manager).
 
 ## Changing ASF library configuration
 Follow this procedure if you'd like to add Atmel Start ASF libraries, change chip configuration or pinout, etc.
