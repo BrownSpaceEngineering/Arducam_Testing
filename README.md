@@ -6,7 +6,8 @@ Note: the Atmel START library in this repo is the bearbones minimal configuratio
 ## Building
 Run `make`. The produced binaries will end up in `build/`
 
-## Deploying to microcontroller
+## Uploading to, running & debugging microcontroller
+To upload your code to the microcontroller, and then run or debug it using gdb:
 1. Make sure you've built the code with `make`
 2. Make sure you're connected to the board or debugger
 3. From within this project directory, start `openocd`
@@ -19,6 +20,19 @@ Run `make`. The produced binaries will end up in `build/`
 Tips: 
 - To halt the code and get back to the debugger, do `Ctrl-C`
 - To rebuild the code without closing gdb, run `make` at the `(gdb)` prompt and repeat steps 5-7
+
+### Using Visual Studio Code
+You can use the vscode debugger interface instead of the gdb textual interface to debug programs by installing the [Cortex-Debug](https://github.com/Marus/cortex-debug) vscode extension from the marketplace.
+
+To upload, run and debug using vscode:
+1. Make sure you've built the code with `make`
+2. Make sure you're connected to the board or debugger
+3. Under the "Run and Debug" vscode menu on the left, click the green arrow to start debugging
+   - Make sure the "Debug (OpenOCD)" configuration is selected in the dropdown to the right of the arrow
+4. Wait for the debugger to start up (your bottom bar will turn orange once it does)
+   - If it doesn't start up, check the "Output" and "Debug Console" panes of vscode for error messages
+5. On the hovering toolbar that comes up, click the play button to run (continue) the program
+   - If you want to step through your code, set any breakpoints you need before this using the interface to the left of any code file you have open in vscode
 
 ## Installing the Toolchain
 ### Windows
