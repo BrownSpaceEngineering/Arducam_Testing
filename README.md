@@ -49,12 +49,14 @@ To upload, run and debug using vscode:
 ### Mac OSX
 1. Install homebrew [here](https://brew.sh/)
 2. Install ARM developer tools: 
-```
-brew tap PX4/homebrew-px4
-brew update
-brew search px4
-brew install gcc-arm-none-eabi-80
-```
+   ```
+   brew tap PX4/homebrew-px4
+   brew update
+   brew search px4
+   brew install gcc-arm-none-eabi-80
+   ```
+   If the last command fails but tells you to "Install the Command Line Tools" using `xcode-select --install`, do so.
+
 3. Install openocd: `brew install openocd`
 
 ### Linux (Ubuntu)
