@@ -1,3 +1,4 @@
+#include <atmel_start.h>
 #ifndef BSE_FSW_TEMPLATE_SCCB_BUS_H
 #define BSE_FSW_TEMPLATE_SCCB_BUS_H
 

@@ -9,6 +9,7 @@
 #define LOW   0
 
 #define digitalWrite(pin, val) gpio_set_pin_level(pin, val)
+#define digitalRead(pin) gpio_get_pin_level(pin)
 #define pinMode(pin, val) gpio_set_pin_function(pin, val)
 char spiSendReceive(char send);
 

@@ -333,11 +333,11 @@ int rdSensorRegs16_8(const struct sensor_reg reglist[]) {
         // err = wrSensorReg16_8(reg_addr, reg_val);
         //printf("Write register %04x value %02x\r\n",reg_addr,reg_val);
         rdSensorReg16_8(reg_addr,&testVal);
-        printf("Read  register %04x value %02x  ",reg_addr,testVal);
+//        printf("Read  register %04x value %02x  ",reg_addr,testVal);
         if(testVal != reg_val){
-            printf("(error) \r\n");
+//            printf("(error) \r\n");
         }else{
-            printf("\r\n");
+//            printf("\r\n");
         }
         next++;
     }
@@ -459,13 +459,13 @@ void Arducam_bus_detect(int CS1,int CS2,int CS3,int CS4){
             write_reg(ARDUCHIP_TEST1, 0x55 ,CS1 );
             temp = read_reg(ARDUCHIP_TEST1 ,CS1 );
             if (temp != 0x55){
-                printf("SPI1 interface Error!\n");
+//                printf("SPI1 interface Error!\n");
                 delay_ms(1000);
                 continue;
             }
 
             else{
-                printf("SPI1 interface OK!\r\n");
+//                printf("SPI1 interface OK!\r\n");
                 break;
             }
         }
@@ -477,13 +477,13 @@ void Arducam_bus_detect(int CS1,int CS2,int CS3,int CS4){
             write_reg(ARDUCHIP_TEST1, 0x55 ,CS2 );
             temp = read_reg(ARDUCHIP_TEST1 ,CS2 );
             if (temp != 0x55){
-                printf("SPI2 interface Error!\n");
+//                printf("SPI2 interface Error!\n");
                 delay_ms(1000);
                 continue;
             }
 
             else{
-                printf("SPI2 interface OK!\r\n");
+//                printf("SPI2 interface OK!\r\n");
                 break;
             }
         }
@@ -494,13 +494,13 @@ void Arducam_bus_detect(int CS1,int CS2,int CS3,int CS4){
             write_reg(ARDUCHIP_TEST1, 0x55 ,CS3 );
             temp = read_reg(ARDUCHIP_TEST1 ,CS3 );
             if (temp != 0x55){
-                printf("SPI3 interface Error!\n");
+//                printf("SPI3 interface Error!\n");
                 delay_ms(1000);
                 continue;
             }
 
             else{
-                printf("SPI3 interface OK!\r\n");
+//                printf("SPI3 interface OK!\r\n");
                 break;
             }
         }
@@ -510,13 +510,13 @@ void Arducam_bus_detect(int CS1,int CS2,int CS3,int CS4){
             write_reg(ARDUCHIP_TEST1, 0x55 ,CS4 );
             temp = read_reg(ARDUCHIP_TEST1 ,CS4 );
             if (temp != 0x55){
-                printf("SPI4 interface Error!\n");
+//                printf("SPI4 interface Error!\n");
                 delay_ms(1000);
                 continue;
             }
 
             else{
-                printf("SPI4 interface OK!\r\n");
+//                printf("SPI4 interface OK!\r\n");
                 break;
             }
         }
@@ -528,11 +528,11 @@ void Arducam_bus_detect(int CS1,int CS2,int CS3,int CS4){
         wrSensorReg8_8(0xff, 0x01);
         rdSensorReg8_8(OV2640_CHIPID_HIGH, &vid);
         rdSensorReg8_8(OV2640_CHIPID_LOW, &pid);
-        if ((vid != 0x26 ) && (( pid != 0x41 ) || ( pid != 0x42 )))
-            printf("Can't find OV2640 module!\r\n");
-        else{
+        if ((vid != 0x26 ) && (( pid != 0x41 ) || ( pid != 0x42 ))) {
+//            printf("Can't find OV2640 module!\r\n");
+        } else{
             sensor_model =  OV2640 ;
-            printf("OV2640 detected.\r\n");
+//            printf("OV2640 detected.\r\n");
             break;
         }
     }

@@ -1,3 +1,4 @@
+#include <atmel_start.h>
 #ifndef __ARDUCAM_H
 #define __ARDUCAM_H
 

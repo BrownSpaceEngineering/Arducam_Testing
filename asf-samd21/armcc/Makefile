@@ -27,23 +27,26 @@ endif
 # List the subdirectories for creating object files
 SUB_DIRS +=  \
  \
+samd21a/armcc/Device/SAMD21A/Source \
 hpl/systick \
 hpl/dmac \
-samd21a/armcc/Device/SAMD21/Source \
 hal/src \
 hpl/pm \
-samd21a/armcc/Device/SAMD21/Source/ARM \
 hpl/sysctrl \
 hal/utils/src \
+hpl/sercom \
 examples \
 hpl/gclk \
+samd21a/armcc/Device/SAMD21A/Source/ARM \
 hpl/core
 
 # List the object files
 OBJS +=  \
 hal/src/hal_io.o \
 hpl/systick/hpl_systick.o \
+hal/src/hal_spi_m_sync.o \
 hal/src/hal_delay.o \
+samd21a/armcc/Device/SAMD21A/Source/system_samd21.o \
 hpl/pm/hpl_pm.o \
 hpl/core/hpl_init.o \
 hal/utils/src/utils_list.o \
@@ -53,11 +56,11 @@ hpl/dmac/hpl_dmac.o \
 hpl/sysctrl/hpl_sysctrl.o \
 hpl/gclk/hpl_gclk.o \
 hal/src/hal_init.o \
-samd21a/armcc/Device/SAMD21/Source/ARM/startup_SAMD21.o \
 main.o \
 examples/driver_examples.o \
 driver_init.o \
-samd21a/armcc/Device/SAMD21/Source/system_samd21.o \
+samd21a/armcc/Device/SAMD21A/Source/ARM/startup_SAMD21.o \
+hpl/sercom/hpl_sercom.o \
 hal/src/hal_gpio.o \
 hal/utils/src/utils_event.o \
 hal/src/hal_sleep.o \
@@ -67,7 +70,9 @@ hal/src/hal_atomic.o
 OBJS_AS_ARGS +=  \
 "hal/src/hal_io.o" \
 "hpl/systick/hpl_systick.o" \
+"hal/src/hal_spi_m_sync.o" \
 "hal/src/hal_delay.o" \
+"samd21a/armcc/Device/SAMD21A/Source/system_samd21.o" \
 "hpl/pm/hpl_pm.o" \
 "hpl/core/hpl_init.o" \
 "hal/utils/src/utils_list.o" \
@@ -77,11 +82,11 @@ OBJS_AS_ARGS +=  \
 "hpl/sysctrl/hpl_sysctrl.o" \
 "hpl/gclk/hpl_gclk.o" \
 "hal/src/hal_init.o" \
-"samd21a/armcc/Device/SAMD21/Source/ARM/startup_SAMD21.o" \
 "main.o" \
 "examples/driver_examples.o" \
 "driver_init.o" \
-"samd21a/armcc/Device/SAMD21/Source/system_samd21.o" \
+"samd21a/armcc/Device/SAMD21A/Source/ARM/startup_SAMD21.o" \
+"hpl/sercom/hpl_sercom.o" \
 "hal/src/hal_gpio.o" \
 "hal/utils/src/utils_event.o" \
 "hal/src/hal_sleep.o" \
@@ -95,21 +100,23 @@ DEPS_AS_ARGS +=  \
 "hal/src/hal_gpio.d" \
 "hal/src/hal_io.d" \
 "hpl/systick/hpl_systick.d" \
-"samd21a/armcc/Device/SAMD21/Source/system_samd21.d" \
+"hal/src/hal_spi_m_sync.d" \
 "hpl/core/hpl_core_m0plus_base.d" \
 "hal/utils/src/utils_list.d" \
 "hpl/dmac/hpl_dmac.d" \
 "hal/utils/src/utils_assert.d" \
+"samd21a/armcc/Device/SAMD21A/Source/system_samd21.d" \
 "hal/src/hal_delay.d" \
 "hpl/core/hpl_init.d" \
 "hpl/sysctrl/hpl_sysctrl.d" \
 "hpl/gclk/hpl_gclk.d" \
-"samd21a/armcc/Device/SAMD21/Source/ARM/startup_SAMD21.d" \
 "hal/src/hal_init.d" \
 "driver_init.d" \
 "main.d" \
 "examples/driver_examples.d" \
 "hal/src/hal_sleep.d" \
+"hpl/sercom/hpl_sercom.d" \
+"samd21a/armcc/Device/SAMD21A/Source/ARM/startup_SAMD21.d" \
 "hal/utils/src/utils_event.d" \
 "hal/src/hal_atomic.d" \
 "hpl/pm/hpl_pm.d" \
@@ -149,7 +156,7 @@ $(OBJS_AS_ARGS)
 	@echo Building file: $<
 	@echo ARMCC Compiler
 	$(QUOTE)armcc$(QUOTE) --c99 -c -DDEBUG -O1 -g --apcs=interwork --split_sections --cpu Cortex-M0+ -D__SAMD21J18A__ \
--I"../" -I"../config" -I"../examples" -I"../hal/include" -I"../hal/utils/include" -I"../hpl/core" -I"../hpl/dmac" -I"../hpl/gclk" -I"../hpl/pm" -I"../hpl/port" -I"../hpl/sysctrl" -I"../hpl/systick" -I"../hri" -I"../" -I"../CMSIS/Include" -I"../samd21a/include"  \
+-I"../" -I"../config" -I"../examples" -I"../hal/include" -I"../hal/utils/include" -I"../hpl/core" -I"../hpl/dmac" -I"../hpl/gclk" -I"../hpl/pm" -I"../hpl/port" -I"../hpl/sercom" -I"../hpl/sysctrl" -I"../hpl/systick" -I"../hri" -I"../" -I"../CMSIS/Core/Include" -I"../samd21a/include"  \
 --depend "$@"  -o "$@" "$<"
 
 	@echo Finished building: $<
@@ -158,7 +165,7 @@ $(OBJS_AS_ARGS)
 	@echo Building file: $<
 	@echo ARMCC Assembler
 	$(QUOTE)armasm$(QUOTE) -g --apcs=interwork --cpu Cortex-M0+ --pd "D__SAMD21J18A__ SETA 1" \
--I"../" -I"../config" -I"../examples" -I"../hal/include" -I"../hal/utils/include" -I"../hpl/core" -I"../hpl/dmac" -I"../hpl/gclk" -I"../hpl/pm" -I"../hpl/port" -I"../hpl/sysctrl" -I"../hpl/systick" -I"../hri" -I"../" -I"../CMSIS/Include" -I"../samd21a/include"  \
+-I"../" -I"../config" -I"../examples" -I"../hal/include" -I"../hal/utils/include" -I"../hpl/core" -I"../hpl/dmac" -I"../hpl/gclk" -I"../hpl/pm" -I"../hpl/port" -I"../hpl/sercom" -I"../hpl/sysctrl" -I"../hpl/systick" -I"../hri" -I"../" -I"../CMSIS/Core/Include" -I"../samd21a/include"  \
 --depend "$(@:%.o=%.d)" -o "$@" "$<"
 
 	@echo Finished building: $<
@@ -167,7 +174,7 @@ $(OBJS_AS_ARGS)
 	@echo Building file: $<
 	@echo ARMCC Preprocessing Assembler
 	$(QUOTE)armcc$(QUOTE) --c99 -c -DDEBUG -O1 -g --apcs=interwork --split_sections --cpu Cortex-M0+ -D__SAMD21J18A__ \
--I"../" -I"../config" -I"../examples" -I"../hal/include" -I"../hal/utils/include" -I"../hpl/core" -I"../hpl/dmac" -I"../hpl/gclk" -I"../hpl/pm" -I"../hpl/port" -I"../hpl/sysctrl" -I"../hpl/systick" -I"../hri" -I"../" -I"../CMSIS/Include" -I"../samd21a/include"  \
+-I"../" -I"../config" -I"../examples" -I"../hal/include" -I"../hal/utils/include" -I"../hpl/core" -I"../hpl/dmac" -I"../hpl/gclk" -I"../hpl/pm" -I"../hpl/port" -I"../hpl/sercom" -I"../hpl/sysctrl" -I"../hpl/systick" -I"../hri" -I"../" -I"../CMSIS/Core/Include" -I"../samd21a/include"  \
 --depend "$@"  -o "$@" "$<"
 
 	@echo Finished building: $<

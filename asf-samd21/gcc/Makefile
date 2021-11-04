@@ -21,6 +21,10 @@ else
 	ifeq ($(shell uname | cut -d _ -f 1), MINGW64)
 		MK_DIR = mkdir -p
 	endif
+
+	ifeq ($(shell uname | cut -d _ -f 1), DARWIN)
+		MK_DIR = mkdir -p
+	endif
 endif
 
 # List the subdirectories for creating object files
@@ -33,6 +37,7 @@ samd21a/gcc \
 hpl/pm \
 hpl/sysctrl \
 hal/utils/src \
+hpl/sercom \
 examples \
 hpl/gclk \
 samd21a/gcc/gcc \
@@ -44,10 +49,11 @@ hal/src/hal_io.o \
 hpl/systick/hpl_systick.o \
 samd21a/gcc/gcc/startup_samd21.o \
 hal/utils/src/utils_syscalls.o \
+hal/src/hal_spi_m_sync.o \
 hal/src/hal_delay.o \
 hpl/pm/hpl_pm.o \
 hpl/core/hpl_init.o \
-samd21a/gcc/system_samd21.o \
+hal/utils/src/utils_list.o \
 hpl/core/hpl_core_m0plus_base.o \
 hal/utils/src/utils_assert.o \
 hpl/dmac/hpl_dmac.o \
@@ -55,9 +61,10 @@ hpl/sysctrl/hpl_sysctrl.o \
 hpl/gclk/hpl_gclk.o \
 hal/src/hal_init.o \
 main.o \
-hal/utils/src/utils_list.o \
+samd21a/gcc/system_samd21.o \
 examples/driver_examples.o \
 driver_init.o \
+hpl/sercom/hpl_sercom.o \
 hal/src/hal_gpio.o \
 hal/utils/src/utils_event.o \
 hal/src/hal_sleep.o \
@@ -69,10 +76,11 @@ OBJS_AS_ARGS +=  \
 "hpl/systick/hpl_systick.o" \
 "samd21a/gcc/gcc/startup_samd21.o" \
 "hal/utils/src/utils_syscalls.o" \
+"hal/src/hal_spi_m_sync.o" \
 "hal/src/hal_delay.o" \
 "hpl/pm/hpl_pm.o" \
 "hpl/core/hpl_init.o" \
-"samd21a/gcc/system_samd21.o" \
+"hal/utils/src/utils_list.o" \
 "hpl/core/hpl_core_m0plus_base.o" \
 "hal/utils/src/utils_assert.o" \
 "hpl/dmac/hpl_dmac.o" \
@@ -80,14 +88,35 @@ OBJS_AS_ARGS +=  \
 "hpl/gclk/hpl_gclk.o" \
 "hal/src/hal_init.o" \
 "main.o" \
-"hal/utils/src/utils_list.o" \
+"samd21a/gcc/system_samd21.o" \
 "examples/driver_examples.o" \
 "driver_init.o" \
+"hpl/sercom/hpl_sercom.o" \
 "hal/src/hal_gpio.o" \
 "hal/utils/src/utils_event.o" \
 "hal/src/hal_sleep.o" \
 "atmel_start.o" \
 "hal/src/hal_atomic.o"
+
+# List the directories containing header files
+DIR_INCLUDES +=  \
+-I"../" \
+-I"../config" \
+-I"../examples" \
+-I"../hal/include" \
+-I"../hal/utils/include" \
+-I"../hpl/core" \
+-I"../hpl/dmac" \
+-I"../hpl/gclk" \
+-I"../hpl/pm" \
+-I"../hpl/port" \
+-I"../hpl/sercom" \
+-I"../hpl/sysctrl" \
+-I"../hpl/systick" \
+-I"../hri" \
+-I"../" \
+-I"../CMSIS/Core/Include" \
+-I"../samd21a/include"
 
 # List the dependency files
 DEPS := $(OBJS:%.o=%.d)
@@ -98,6 +127,7 @@ DEPS_AS_ARGS +=  \
 "hal/src/hal_io.d" \
 "hpl/systick/hpl_systick.d" \
 "hal/utils/src/utils_syscalls.d" \
+"hal/src/hal_spi_m_sync.d" \
 "hpl/core/hpl_core_m0plus_base.d" \
 "hal/utils/src/utils_list.d" \
 "hpl/dmac/hpl_dmac.d" \
@@ -112,6 +142,7 @@ DEPS_AS_ARGS +=  \
 "main.d" \
 "examples/driver_examples.d" \
 "hal/src/hal_sleep.d" \
+"hpl/sercom/hpl_sercom.d" \
 "hal/utils/src/utils_event.d" \
 "hal/src/hal_atomic.d" \
 "hpl/pm/hpl_pm.d" \
@@ -162,7 +193,7 @@ $(OUTPUT_FILE_PATH): $(OBJS)
 	@echo ARM/GNU C Compiler
 	$(QUOTE)arm-none-eabi-gcc$(QUOTE) -x c -mthumb -DDEBUG -Os -ffunction-sections -mlong-calls -g3 -Wall -c -std=gnu99 \
 -D__SAMD21J18A__ -mcpu=cortex-m0plus  \
--I"../" -I"../config" -I"../examples" -I"../hal/include" -I"../hal/utils/include" -I"../hpl/core" -I"../hpl/dmac" -I"../hpl/gclk" -I"../hpl/pm" -I"../hpl/port" -I"../hpl/sysctrl" -I"../hpl/systick" -I"../hri" -I"../" -I"../CMSIS/Include" -I"../samd21a/include"  \
+$(DIR_INCLUDES) \
 -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"  -o "$@" "$<"
 	@echo Finished building: $<
 
@@ -171,7 +202,7 @@ $(OUTPUT_FILE_PATH): $(OBJS)
 	@echo ARM/GNU Assembler
 	$(QUOTE)arm-none-eabi-as$(QUOTE) -x c -mthumb -DDEBUG -Os -ffunction-sections -mlong-calls -g3 -Wall -c -std=gnu99 \
 -D__SAMD21J18A__ -mcpu=cortex-m0plus  \
--I"../" -I"../config" -I"../examples" -I"../hal/include" -I"../hal/utils/include" -I"../hpl/core" -I"../hpl/dmac" -I"../hpl/gclk" -I"../hpl/pm" -I"../hpl/port" -I"../hpl/sysctrl" -I"../hpl/systick" -I"../hri" -I"../" -I"../CMSIS/Include" -I"../samd21a/include"  \
+$(DIR_INCLUDES) \
 -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"  -o "$@" "$<"
 	@echo Finished building: $<
 
@@ -180,7 +211,7 @@ $(OUTPUT_FILE_PATH): $(OBJS)
 	@echo ARM/GNU Preprocessing Assembler
 	$(QUOTE)arm-none-eabi-gcc$(QUOTE) -x c -mthumb -DDEBUG -Os -ffunction-sections -mlong-calls -g3 -Wall -c -std=gnu99 \
 -D__SAMD21J18A__ -mcpu=cortex-m0plus  \
--I"../" -I"../config" -I"../examples" -I"../hal/include" -I"../hal/utils/include" -I"../hpl/core" -I"../hpl/dmac" -I"../hpl/gclk" -I"../hpl/pm" -I"../hpl/port" -I"../hpl/sysctrl" -I"../hpl/systick" -I"../hri" -I"../" -I"../CMSIS/Include" -I"../samd21a/include"  \
+$(DIR_INCLUDES) \
 -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"  -o "$@" "$<"
 	@echo Finished building: $<
 
