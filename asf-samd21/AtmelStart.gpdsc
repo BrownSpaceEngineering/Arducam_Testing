@@ -43,6 +43,7 @@
       <RTE_Components_h>#define ATMEL_START</RTE_Components_h>
       <files>
         <file category="doc" condition="ARMCC, GCC, IAR" name="hal/documentation/spi_master_sync.rst"/>
+        <file category="doc" condition="ARMCC, GCC, IAR" name="hal/documentation/usart_sync.rst"/>
         <file category="header" condition="ARMCC, GCC, IAR" name="hal/include/hal_atomic.h"/>
         <file category="header" condition="ARMCC, GCC, IAR" name="hal/include/hal_delay.h"/>
         <file category="header" condition="ARMCC, GCC, IAR" name="hal/include/hal_gpio.h"/>
@@ -118,6 +119,7 @@
         <file category="header" condition="ARMCC, GCC, IAR" name="atmel_start_pins.h"/>
         <file category="header" condition="ARMCC, GCC, IAR" name="examples/driver_examples.h"/>
         <file category="source" condition="ARMCC, GCC, IAR" name="examples/driver_examples.c"/>
+        <file category="header" condition="ARMCC, GCC, IAR" name="hal/include/hal_usart_sync.h"/>
         <file category="header" condition="ARMCC, GCC, IAR" name="hal/include/hpl_missing_features.h"/>
         <file category="header" condition="ARMCC, GCC, IAR" name="hal/include/hpl_reset.h"/>
         <file category="header" condition="ARMCC, GCC, IAR" name="hal/include/hpl_spi_m_async.h"/>
@@ -128,6 +130,7 @@
         <file category="header" condition="ARMCC, GCC, IAR" name="hal/include/hpl_usart_async.h"/>
         <file category="header" condition="ARMCC, GCC, IAR" name="hal/include/hpl_usart_sync.h"/>
         <file category="source" condition="ARMCC, GCC, IAR" name="hal/src/hal_spi_m_sync.c"/>
+        <file category="source" condition="ARMCC, GCC, IAR" name="hal/src/hal_usart_sync.c"/>
         <file category="header" condition="ARMCC, GCC, IAR" name="hal/utils/include/parts.h"/>
         <file category="source" condition="ARMCC, GCC, IAR" name="hpl/core/hpl_core_m0plus_base.c"/>
         <file category="header" condition="ARMCC, GCC, IAR" name="hpl/core/hpl_core_port.h"/>

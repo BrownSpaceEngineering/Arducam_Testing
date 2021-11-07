@@ -15,6 +15,8 @@
 
 struct spi_m_sync_descriptor SPI_0;
 
+struct usart_sync_descriptor USART_0;
+
 void SPI_0_PORT_init(void)
 {
 
@@ -69,6 +71,27 @@ void SPI_0_init(void)
 	SPI_0_PORT_init();
 }
 
+void USART_0_PORT_init(void)
+{
+
+	gpio_set_pin_function(PA00, PINMUX_PA00D_SERCOM1_PAD0);
+
+	gpio_set_pin_function(PA01, PINMUX_PA01D_SERCOM1_PAD1);
+}
+
+void USART_0_CLOCK_init(void)
+{
+	_pm_enable_bus_clock(PM_BUS_APBC, SERCOM1);
+	_gclk_enable_channel(SERCOM1_GCLK_ID_CORE, CONF_GCLK_SERCOM1_CORE_SRC);
+}
+
+void USART_0_init(void)
+{
+	USART_0_CLOCK_init();
+	usart_sync_init(&USART_0, SERCOM1, (void *)NULL);
+	USART_0_PORT_init();
+}
+
 void delay_driver_init(void)
 {
 	delay_init(SysTick);
@@ -79,6 +102,8 @@ void system_init(void)
 	init_mcu();
 
 	SPI_0_init();
+
+	USART_0_init();
 
 	delay_driver_init();
 }

@@ -54,6 +54,7 @@ hpl/core/hpl_core_m0plus_base.o \
 hal/utils/src/utils_assert.o \
 hpl/dmac/hpl_dmac.o \
 hpl/sysctrl/hpl_sysctrl.o \
+hal/src/hal_usart_sync.o \
 hpl/gclk/hpl_gclk.o \
 hal/src/hal_init.o \
 main.o \
@@ -80,6 +81,7 @@ OBJS_AS_ARGS +=  \
 "hal/utils/src/utils_assert.o" \
 "hpl/dmac/hpl_dmac.o" \
 "hpl/sysctrl/hpl_sysctrl.o" \
+"hal/src/hal_usart_sync.o" \
 "hpl/gclk/hpl_gclk.o" \
 "hal/src/hal_init.o" \
 "main.o" \
@@ -111,6 +113,7 @@ DEPS_AS_ARGS +=  \
 "hpl/sysctrl/hpl_sysctrl.d" \
 "hpl/gclk/hpl_gclk.d" \
 "hal/src/hal_init.d" \
+"hal/src/hal_usart_sync.d" \
 "driver_init.d" \
 "main.d" \
 "examples/driver_examples.d" \

@@ -2,21 +2,12 @@
 #ifndef __ARDUCAM_H
 #define __ARDUCAM_H
 
-#define JPEG_BUF_SIZE   50*1024 //50KB - originally 2M, but we don't have that much RAM...
+#define JPEG_BUF_SIZE   20*1024 //20KB - was 50KB; originally 2M, but we don't have that much RAM...
 #define CMD_BUF_SIZE    512
 
 
 char readbuf[JPEG_BUF_SIZE];
 
-
-char* sendbuf_cam1 ;
-char* sendbuf_cam2 ;
-char* sendbuf_cam3 ;
-char* sendbuf_cam4 ;
-
-
-
-char revCmdData[CMD_BUF_SIZE];
 
 //ArduCAM CS define
 #define     CAM_CS1         17
