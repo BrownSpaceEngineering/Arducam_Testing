@@ -9,8 +9,8 @@
 extern "C"{
 #endif
 
-#define sda_port        2
-#define scl_port        3
+#define sda_port        GPIO(GPIO_PORTA, 10)
+#define scl_port        GPIO(GPIO_PORTA, 11)
 
 
 #define SCCB_SIC_H()      digitalWrite(scl_port,HIGH)	 	//SCL H

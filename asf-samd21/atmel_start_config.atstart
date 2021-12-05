@@ -196,7 +196,7 @@ drivers:
           slow_gclk_selection: Generic clock generator 3
   USART_0:
     user_label: USART_0
-    definition: Atmel:SAMD21_Drivers:0.0.1::SAMD21J18A-AF::SERCOM1::driver_config_definition::UART::HAL:Driver:USART.Sync
+    definition: Atmel:SAMD21_Drivers:0.0.1::SAMD21J18A-AF::SERCOM3::driver_config_definition::UART::HAL:Driver:USART.Sync
     functionality: USART
     api: HAL:Driver:USART_Sync
     configuration:
@@ -223,11 +223,11 @@ drivers:
     variant:
       specification: TXPO=0, RXPO=1, CMODE=0
       required_signals:
-      - name: SERCOM1/PAD/0
-        pad: PA00
+      - name: SERCOM3/PAD/0
+        pad: PA22
         label: TX
-      - name: SERCOM1/PAD/1
-        pad: PA01
+      - name: SERCOM3/PAD/1
+        pad: PA23
         label: RX
     clocks:
       domain_group:
@@ -621,18 +621,6 @@ drivers:
     clocks:
       domain_group: null
 pads:
-  PA00:
-    name: PA00
-    definition: Atmel:SAMD21_Drivers:0.0.1::SAMD21J18A-AF::pad::PA00
-    mode: Peripheral IO
-    user_label: PA00
-    configuration: null
-  PA01:
-    name: PA01
-    definition: Atmel:SAMD21_Drivers:0.0.1::SAMD21J18A-AF::pad::PA01
-    mode: Peripheral IO
-    user_label: PA01
-    configuration: null
   PA04:
     name: PA04
     definition: Atmel:SAMD21_Drivers:0.0.1::SAMD21J18A-AF::pad::PA04
@@ -650,6 +638,18 @@ pads:
     definition: Atmel:SAMD21_Drivers:0.0.1::SAMD21J18A-AF::pad::PA06
     mode: Digital input
     user_label: PA06
+    configuration: null
+  PA22:
+    name: PA22
+    definition: Atmel:SAMD21_Drivers:0.0.1::SAMD21J18A-AF::pad::PA22
+    mode: Peripheral IO
+    user_label: PA22
+    configuration: null
+  PA23:
+    name: PA23
+    definition: Atmel:SAMD21_Drivers:0.0.1::SAMD21J18A-AF::pad::PA23
+    mode: Peripheral IO
+    user_label: PA23
     configuration: null
 toolchain_options: []
 static_files: []
