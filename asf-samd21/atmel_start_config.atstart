@@ -169,17 +169,17 @@ drivers:
       spi_master_rx_enable: true
     optional_signals: []
     variant:
-      specification: TXPO=0, RXPO=2
+      specification: TXPO=1, RXPO=0
       required_signals:
       - name: SERCOM0/PAD/0
         pad: PA04
-        label: MOSI
-      - name: SERCOM0/PAD/1
-        pad: PA05
-        label: SCK
+        label: MISO
       - name: SERCOM0/PAD/2
         pad: PA06
-        label: MISO
+        label: MOSI
+      - name: SERCOM0/PAD/3
+        pad: PA07
+        label: SCK
     clocks:
       domain_group:
         nodes:
@@ -624,20 +624,20 @@ pads:
   PA04:
     name: PA04
     definition: Atmel:SAMD21_Drivers:0.0.1::SAMD21J18A-AF::pad::PA04
-    mode: Digital output
+    mode: Digital input
     user_label: PA04
-    configuration: null
-  PA05:
-    name: PA05
-    definition: Atmel:SAMD21_Drivers:0.0.1::SAMD21J18A-AF::pad::PA05
-    mode: Digital output
-    user_label: PA05
     configuration: null
   PA06:
     name: PA06
     definition: Atmel:SAMD21_Drivers:0.0.1::SAMD21J18A-AF::pad::PA06
-    mode: Digital input
+    mode: Digital output
     user_label: PA06
+    configuration: null
+  PA07:
+    name: PA07
+    definition: Atmel:SAMD21_Drivers:0.0.1::SAMD21J18A-AF::pad::PA07
+    mode: Digital output
+    user_label: PA07
     configuration: null
   PA22:
     name: PA22

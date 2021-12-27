@@ -10,7 +10,7 @@ char readbuf[JPEG_BUF_SIZE];
 
 
 //ArduCAM CS define
-#define     CAM_CS1         GPIO(GPIO_PORTA, 8)
+#define     CAM_CS1         GPIO(GPIO_PORTA, 5)
 #define     CAM_CS2         23
 #define     CAM_CS3         22
 #define     CAM_CS4         24
