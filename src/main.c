@@ -38,7 +38,7 @@ int main(void)
 
     // Send over UART
     struct io_descriptor *io;
-    usart_sync_set_baud_rate(&USART_0, 9600);
+//    usart_sync_set_baud_rate(&USART_0, 9600);
     usart_sync_get_io_descriptor(&USART_0, &io);
     usart_sync_enable(&USART_0);
     // Testing code to verify USART is working (it is!)
