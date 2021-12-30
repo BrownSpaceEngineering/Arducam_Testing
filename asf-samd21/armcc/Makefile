@@ -45,6 +45,7 @@ OBJS +=  \
 hal/src/hal_io.o \
 hpl/systick/hpl_systick.o \
 hal/src/hal_spi_m_sync.o \
+hal/src/hal_i2c_m_sync.o \
 hal/src/hal_delay.o \
 samd21a/armcc/Device/SAMD21A/Source/system_samd21.o \
 hpl/pm/hpl_pm.o \
@@ -72,6 +73,7 @@ OBJS_AS_ARGS +=  \
 "hal/src/hal_io.o" \
 "hpl/systick/hpl_systick.o" \
 "hal/src/hal_spi_m_sync.o" \
+"hal/src/hal_i2c_m_sync.o" \
 "hal/src/hal_delay.o" \
 "samd21a/armcc/Device/SAMD21A/Source/system_samd21.o" \
 "hpl/pm/hpl_pm.o" \
@@ -102,6 +104,7 @@ DEPS_AS_ARGS +=  \
 "hal/src/hal_gpio.d" \
 "hal/src/hal_io.d" \
 "hpl/systick/hpl_systick.d" \
+"hal/src/hal_i2c_m_sync.d" \
 "hal/src/hal_spi_m_sync.d" \
 "hpl/core/hpl_core_m0plus_base.d" \
 "hal/utils/src/utils_list.d" \

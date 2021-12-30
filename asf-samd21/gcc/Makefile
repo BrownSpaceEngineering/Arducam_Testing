@@ -50,6 +50,7 @@ hpl/systick/hpl_systick.o \
 samd21a/gcc/gcc/startup_samd21.o \
 hal/utils/src/utils_syscalls.o \
 hal/src/hal_spi_m_sync.o \
+hal/src/hal_i2c_m_sync.o \
 hal/src/hal_delay.o \
 hpl/pm/hpl_pm.o \
 hpl/core/hpl_init.o \
@@ -78,6 +79,7 @@ OBJS_AS_ARGS +=  \
 "samd21a/gcc/gcc/startup_samd21.o" \
 "hal/utils/src/utils_syscalls.o" \
 "hal/src/hal_spi_m_sync.o" \
+"hal/src/hal_i2c_m_sync.o" \
 "hal/src/hal_delay.o" \
 "hpl/pm/hpl_pm.o" \
 "hpl/core/hpl_init.o" \
@@ -129,6 +131,7 @@ DEPS_AS_ARGS +=  \
 "hal/src/hal_io.d" \
 "hpl/systick/hpl_systick.d" \
 "hal/utils/src/utils_syscalls.d" \
+"hal/src/hal_i2c_m_sync.d" \
 "hal/src/hal_spi_m_sync.d" \
 "hpl/core/hpl_core_m0plus_base.d" \
 "hal/utils/src/utils_list.d" \

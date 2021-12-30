@@ -15,6 +15,8 @@
 
 struct spi_m_sync_descriptor SPI_0;
 
+struct i2c_m_sync_desc I2C_0;
+
 struct usart_sync_descriptor USART_0;
 
 void SPI_0_PORT_init(void)
@@ -71,6 +73,44 @@ void SPI_0_init(void)
 	SPI_0_PORT_init();
 }
 
+void I2C_0_PORT_init(void)
+{
+
+	gpio_set_pin_pull_mode(PA08,
+	                       // <y> Pull configuration
+	                       // <id> pad_pull_config
+	                       // <GPIO_PULL_OFF"> Off
+	                       // <GPIO_PULL_UP"> Pull-up
+	                       // <GPIO_PULL_DOWN"> Pull-down
+	                       GPIO_PULL_OFF);
+
+	gpio_set_pin_function(PA08, PINMUX_PA08D_SERCOM2_PAD0);
+
+	gpio_set_pin_pull_mode(PA09,
+	                       // <y> Pull configuration
+	                       // <id> pad_pull_config
+	                       // <GPIO_PULL_OFF"> Off
+	                       // <GPIO_PULL_UP"> Pull-up
+	                       // <GPIO_PULL_DOWN"> Pull-down
+	                       GPIO_PULL_OFF);
+
+	gpio_set_pin_function(PA09, PINMUX_PA09D_SERCOM2_PAD1);
+}
+
+void I2C_0_CLOCK_init(void)
+{
+	_pm_enable_bus_clock(PM_BUS_APBC, SERCOM2);
+	_gclk_enable_channel(SERCOM2_GCLK_ID_CORE, CONF_GCLK_SERCOM2_CORE_SRC);
+	_gclk_enable_channel(SERCOM2_GCLK_ID_SLOW, CONF_GCLK_SERCOM2_SLOW_SRC);
+}
+
+void I2C_0_init(void)
+{
+	I2C_0_CLOCK_init();
+	i2c_m_sync_init(&I2C_0, SERCOM2);
+	I2C_0_PORT_init();
+}
+
 void USART_0_PORT_init(void)
 {
 
@@ -102,6 +142,8 @@ void system_init(void)
 	init_mcu();
 
 	SPI_0_init();
+
+	I2C_0_init();
 
 	USART_0_init();
 
