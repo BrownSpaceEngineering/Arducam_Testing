@@ -335,6 +335,8 @@ int rdSensorRegs16_8(const struct sensor_reg reglist[]) {
         rdSensorReg16_8(reg_addr,&testVal);
 //        printf("Read  register %04x value %02x  ",reg_addr,testVal);
         if(testVal != reg_val){
+            // Actually do something helpful here...
+            ASSERT(0);
 //            printf("(error) \r\n");
         }else{
 //            printf("\r\n");
