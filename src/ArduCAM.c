@@ -7,10 +7,12 @@ unsigned char sensor_addr = 0;
 unsigned char m_fmt = JPEG;
 unsigned int length = 0;
 
-void ArduCAM_Init(unsigned char model) {
+void ArduCAM_Init(unsigned char model)
+{
     wrSensorReg8_8(0xff, 0x01);
     wrSensorReg8_8(0x12, 0x80);
-    if (m_fmt == JPEG) {
+    if (m_fmt == JPEG)
+    {
         wrSensorRegs8_8(OV2640_JPEG_INIT);
         wrSensorRegs8_8(OV2640_YUV422);
         wrSensorRegs8_8(OV2640_JPEG);
@@ -18,48 +20,61 @@ void ArduCAM_Init(unsigned char model) {
         wrSensorReg8_8(0x15, 0x00);
         wrSensorRegs8_8(OV2640_320x240_JPEG);
     }
-    else {
+    else
+    {
         wrSensorRegs8_8(OV2640_QVGA);
     }
     OV2640_set_JPEG_size(OV2640_320x240);
 }
 
-void ArduCAM_CS_init(int CS1, int CS2, int CS3, int CS4) {
-    if(CS1> -1){
+void ArduCAM_CS_init(int CS1, int CS2, int CS3, int CS4)
+{
+    if (CS1 > -1)
+    {
         pinMode(CS1, OUTPUT);
         digitalWrite(CS1, HIGH);
     }
-    if(CS2> -1){
+    if (CS2 > -1)
+    {
         pinMode(CS2, OUTPUT);
         digitalWrite(CS2, HIGH);
     }
-    if(CS3> -1){
+    if (CS3 > -1)
+    {
         pinMode(CS3, OUTPUT);
         digitalWrite(CS3, HIGH);
     }
-    if(CS4> -1){
+    if (CS4 > -1)
+    {
         pinMode(CS4, OUTPUT);
         digitalWrite(CS4, HIGH);
     }
 }
 
-void CS_HIGH(int CS) {
+void CS_HIGH(int CS)
+{
     delay_us(1);
     digitalWrite(CS, HIGH);
 }
 
-void CS_LOW(int CS) {
+void CS_LOW(int CS)
+{
     delay_us(1);
     digitalWrite(CS, LOW);
 }
 
-void set_format(unsigned char fmt) {
-    if (fmt == BMP) m_fmt = BMP;
-    else if (fmt == RAW) m_fmt = RAW;
-    else m_fmt = JPEG;
+void set_format(unsigned char fmt)
+{
+    if (fmt == BMP)
+        m_fmt = BMP;
+    else if (fmt == RAW)
+        m_fmt = RAW;
+    else
+        m_fmt = JPEG;
 }
 
-unsigned char bus_read(int address,int CS) {
+unsigned char bus_read(int address, int CS)
+{
     unsigned char value;
     CS_LOW(CS);
     spiSendReceive(address);
@@ -68,7 +83,8 @@ unsigned char bus_read(int address,int CS) {
     return value;
 }
 
-unsigned char bus_write(int address, int value, int CS){
+unsigned char bus_write(int address, int value, int CS)
+{
     CS_LOW(CS);
     spiSendReceive(address);
     spiSendReceive(value);
@@ -76,39 +92,49 @@ unsigned char bus_write(int address, int value, int CS){
     return 1;
 }
 
-unsigned char read_reg(unsigned char addr,int CS) {
+// Write via SPI/DSP communication
+unsigned char read_reg(unsigned char addr, int CS)
+{
     unsigned char readData;
     readData = bus_read(addr & 0x7F, CS);
     return readData;
 }
-void write_reg(unsigned char addr, unsigned char data, int CS) {
+
+// Write via SPI/DSP communication
+void write_reg(unsigned char addr, unsigned char data, int CS)
+{
     bus_write(addr | 0x80, data, CS);
 }
 
-unsigned char read_fifo(int CS) {
+unsigned char read_fifo(int CS)
+{
     unsigned char data;
     data = bus_read(SINGLE_FIFO_READ, CS);
     return data;
 }
-void set_fifo_burst() {
+void set_fifo_burst()
+{
     spiSendReceive(BURST_FIFO_READ);
 }
 
-
-void flush_fifo(int CS) {
+void flush_fifo(int CS)
+{
     write_reg(ARDUCHIP_FIFO, FIFO_CLEAR_MASK, CS);
 }
 
-void start_capture(int CS) {
+void start_capture(int CS)
+{
     write_reg(ARDUCHIP_FIFO, FIFO_START_MASK, CS);
 }
 
-void clear_fifo_flag(int CS ) {
+void clear_fifo_flag(int CS)
+{
     write_reg(ARDUCHIP_FIFO, FIFO_CLEAR_MASK, CS);
 }
 
-unsigned int read_fifo_length(int CS) {
-    unsigned int len1,len2,len3,len=0;
+unsigned int read_fifo_length(int CS)
+{
+    unsigned int len1, len2, len3, len = 0;
     len1 = read_reg(FIFO_SIZE1, CS);
     len2 = read_reg(FIFO_SIZE2, CS);
     len3 = read_reg(FIFO_SIZE3, CS) & 0x7f;
@@ -116,101 +142,107 @@ unsigned int read_fifo_length(int CS) {
     return len;
 }
 
-//Set corresponding bit
-void set_bit(unsigned char addr, unsigned char bit, int CS) {
+// Set corresponding bit
+void set_bit(unsigned char addr, unsigned char bit, int CS)
+{
     unsigned char temp;
     temp = read_reg(addr, CS);
     write_reg(addr, temp | bit, CS);
 }
-//Clear corresponding bit
-void clear_bit(unsigned char addr, unsigned char bit, int CS) {
+// Clear corresponding bit
+void clear_bit(unsigned char addr, unsigned char bit, int CS)
+{
     unsigned char temp;
     temp = read_reg(addr, CS);
     write_reg(addr, temp & (~bit), CS);
 }
 
-//Get corresponding bit status
-unsigned char get_bit(unsigned char addr, unsigned char bit, int CS) {
+// Get corresponding bit status
+unsigned char get_bit(unsigned char addr, unsigned char bit, int CS)
+{
     unsigned char temp;
     temp = read_reg(addr, CS);
     temp = temp & bit;
     return temp;
 }
 
-//Set ArduCAM working mode
-//MCU2LCD_MODE: MCU writes the LCD screen GRAM
-//CAM2LCD_MODE: Camera takes control of the LCD screen
-//LCD2MCU_MODE: MCU read the LCD screen GRAM
-void set_mode(unsigned char mode,int CS) {
-    switch (mode) {
-        case MCU2LCD_MODE:
-            write_reg(ARDUCHIP_MODE, MCU2LCD_MODE, CS);
-            break;
-        case CAM2LCD_MODE:
-            write_reg(ARDUCHIP_MODE, CAM2LCD_MODE, CS);
-            break;
-        case LCD2MCU_MODE:
-            write_reg(ARDUCHIP_MODE, LCD2MCU_MODE, CS);
-            break;
-        default:
-            write_reg(ARDUCHIP_MODE, MCU2LCD_MODE, CS);
-            break;
+// Set ArduCAM working mode
+// MCU2LCD_MODE: MCU writes the LCD screen GRAM
+// CAM2LCD_MODE: Camera takes control of the LCD screen
+// LCD2MCU_MODE: MCU read the LCD screen GRAM
+void set_mode(unsigned char mode, int CS)
+{
+    switch (mode)
+    {
+    case MCU2LCD_MODE:
+        write_reg(ARDUCHIP_MODE, MCU2LCD_MODE, CS);
+        break;
+    case CAM2LCD_MODE:
+        write_reg(ARDUCHIP_MODE, CAM2LCD_MODE, CS);
+        break;
+    case LCD2MCU_MODE:
+        write_reg(ARDUCHIP_MODE, LCD2MCU_MODE, CS);
+        break;
+    default:
+        write_reg(ARDUCHIP_MODE, MCU2LCD_MODE, CS);
+        break;
     }
 }
 
-
-void OV2640_set_JPEG_size(unsigned char size) {
-    switch(size) {
-        case OV2640_160x120:
-            wrSensorRegs8_8(OV2640_160x120_JPEG);
-            break;
-        case OV2640_176x144:
-            wrSensorRegs8_8(OV2640_176x144_JPEG);
-            break;
-        case OV2640_320x240:
-            wrSensorRegs8_8(OV2640_320x240_JPEG);
-            break;
-        case OV2640_352x288:
-            wrSensorRegs8_8(OV2640_352x288_JPEG);
-            break;
-        case OV2640_640x480:
-            wrSensorRegs8_8(OV2640_640x480_JPEG);
-            break;
-        case OV2640_800x600:
-            wrSensorRegs8_8(OV2640_800x600_JPEG);
-            break;
-        case OV2640_1024x768:
-            wrSensorRegs8_8(OV2640_1024x768_JPEG);
-            break;
-        case OV2640_1280x1024:
-            wrSensorRegs8_8(OV2640_1280x1024_JPEG);
-            break;
-        case OV2640_1600x1200:
-            wrSensorRegs8_8(OV2640_1600x1200_JPEG);
-            break;
-        default:
-            wrSensorRegs8_8(OV2640_320x240_JPEG);
-            break;
+void OV2640_set_JPEG_size(unsigned char size)
+{
+    switch (size)
+    {
+    case OV2640_160x120:
+        wrSensorRegs8_8(OV2640_160x120_JPEG);
+        break;
+    case OV2640_176x144:
+        wrSensorRegs8_8(OV2640_176x144_JPEG);
+        break;
+    case OV2640_320x240:
+        wrSensorRegs8_8(OV2640_320x240_JPEG);
+        break;
+    case OV2640_352x288:
+        wrSensorRegs8_8(OV2640_352x288_JPEG);
+        break;
+    case OV2640_640x480:
+        wrSensorRegs8_8(OV2640_640x480_JPEG);
+        break;
+    case OV2640_800x600:
+        wrSensorRegs8_8(OV2640_800x600_JPEG);
+        break;
+    case OV2640_1024x768:
+        wrSensorRegs8_8(OV2640_1024x768_JPEG);
+        break;
+    case OV2640_1280x1024:
+        wrSensorRegs8_8(OV2640_1280x1024_JPEG);
+        break;
+    case OV2640_1600x1200:
+        wrSensorRegs8_8(OV2640_1600x1200_JPEG);
+        break;
+    default:
+        wrSensorRegs8_8(OV2640_320x240_JPEG);
+        break;
     }
 }
 
-
-unsigned char wrSensorReg8_8(int regID, int regDat) {
+unsigned char wrSensorReg8_8(int regID, int regDat)
+{
     delay_us(10);
     sccb_bus_start();
-    if(sccb_bus_write_byte(sensor_addr) == 0)
+    if (sccb_bus_write_byte(sensor_addr) == 0)
     {
         sccb_bus_stop();
         return 1;
     }
     delay_us(10);
-    if(sccb_bus_write_byte(regID) == 0)
+    if (sccb_bus_write_byte(regID) == 0)
     {
         sccb_bus_stop();
         return 2;
     }
     delay_us(10);
-    if(sccb_bus_write_byte(regDat)==0)
+    if (sccb_bus_write_byte(regDat) == 0)
     {
         sccb_bus_stop();
         return 3;
@@ -219,31 +251,31 @@ unsigned char wrSensorReg8_8(int regID, int regDat) {
     return 0;
 }
 
-
-unsigned char rdSensorReg8_8(unsigned char regID, unsigned char* regDat) {
+unsigned char rdSensorReg8_8(unsigned char regID, unsigned char *regDat)
+{
     delay_us(10);
 
     sccb_bus_start();
-    if(sccb_bus_write_byte(sensor_addr) == 0)
+    if (sccb_bus_write_byte(sensor_addr) == 0)
     {
         sccb_bus_stop();
-        //goto start;
+        // goto start;
         return 1;
     }
     delay_us(10);
-    if(sccb_bus_write_byte(regID)==0)//ID
+    if (sccb_bus_write_byte(regID) == 0) // ID
     {
         sccb_bus_stop();
-        //goto start;
+        // goto start;
         return 2;
     }
     sccb_bus_stop();
     delay_us(10);
     sccb_bus_start();
-    if(sccb_bus_write_byte(sensor_addr|0x01)==0)
+    if (sccb_bus_write_byte(sensor_addr | 0x01) == 0)
     {
         sccb_bus_stop();
-        //goto start;
+        // goto start;
         return 3;
     }
     delay_us(10);
@@ -253,15 +285,16 @@ unsigned char rdSensorReg8_8(unsigned char regID, unsigned char* regDat) {
     return 0;
 }
 
-//I2C Array Write 8bit address, 8bit data
-int wrSensorRegs8_8(const struct sensor_reg reglist[]) {
+// I2C Array Write 8bit address, 8bit data
+int wrSensorRegs8_8(const struct sensor_reg reglist[])
+{
     int err = 0;
     unsigned int reg_addr = 0;
     unsigned int reg_val = 0;
     const struct sensor_reg *next = reglist;
     while ((reg_addr != 0xff) | (reg_val != 0xff))
     {
-        reg_addr =next->reg;
+        reg_addr = next->reg;
         reg_val = next->val;
         err = wrSensorReg8_8(reg_addr, reg_val);
         delay_ms(10);
@@ -271,37 +304,39 @@ int wrSensorRegs8_8(const struct sensor_reg reglist[]) {
     return err;
 }
 
-unsigned char wrSensorReg16_8(int regID, int regDat) {
+unsigned char wrSensorReg16_8(int regID, int regDat)
+{
     sccb_bus_start();
-    if(0==sccb_bus_write_byte(sensor_addr))
+    if (0 == sccb_bus_write_byte(sensor_addr))
     {
         sccb_bus_stop();
-        return(0);
+        return (0);
     }
     delay_us(10);
-    if(0==sccb_bus_write_byte(regID>>8))
+    if (0 == sccb_bus_write_byte(regID >> 8))
     {
         sccb_bus_stop();
-        return(0);
+        return (0);
     }
     delay_us(10);
-    if(0==sccb_bus_write_byte(regID))
+    if (0 == sccb_bus_write_byte(regID))
     {
         sccb_bus_stop();
-        return(0);
+        return (0);
     }
     delay_us(10);
-    if(0==sccb_bus_write_byte(regDat))
+    if (0 == sccb_bus_write_byte(regDat))
     {
         sccb_bus_stop();
-        return(0);
+        return (0);
     }
     sccb_bus_stop();
 
-    return(1);
+    return (1);
 }
 
-int wrSensorRegs16_8(const struct sensor_reg reglist[]) {
+int wrSensorRegs16_8(const struct sensor_reg reglist[])
+{
     int err = 0;
     unsigned int reg_addr;
     unsigned char reg_val;
@@ -309,7 +344,7 @@ int wrSensorRegs16_8(const struct sensor_reg reglist[]) {
 
     while ((reg_addr != 0xffff) | (reg_val != 0xff))
     {
-        reg_addr =next->reg;
+        reg_addr = next->reg;
         reg_val = next->val;
         err = wrSensorReg16_8(reg_addr, reg_val);
         next++;
@@ -318,227 +353,260 @@ int wrSensorRegs16_8(const struct sensor_reg reglist[]) {
     return err;
 }
 
-
-int rdSensorRegs16_8(const struct sensor_reg reglist[]) {
+int rdSensorRegs16_8(const struct sensor_reg reglist[])
+{
     int err = 0;
-    unsigned char testVal =0;
+    unsigned char testVal = 0;
     unsigned int reg_addr;
     unsigned char reg_val;
     const struct sensor_reg *next = reglist;
 
     while ((reg_addr != 0xffff) | (reg_val != 0xff))
     {
-        reg_addr =next->reg;
+        reg_addr = next->reg;
         reg_val = next->val;
         // err = wrSensorReg16_8(reg_addr, reg_val);
-        //printf("Write register %04x value %02x\r\n",reg_addr,reg_val);
-        rdSensorReg16_8(reg_addr,&testVal);
-//        printf("Read  register %04x value %02x  ",reg_addr,testVal);
-        if(testVal != reg_val){
-//            printf("(error) \r\n");
-        }else{
-//            printf("\r\n");
+        // printf("Write register %04x value %02x\r\n",reg_addr,reg_val);
+        rdSensorReg16_8(reg_addr, &testVal);
+        //        printf("Read  register %04x value %02x  ",reg_addr,testVal);
+        if (testVal != reg_val)
+        {
+            //            printf("(error) \r\n");
+        }
+        else
+        {
+            //            printf("\r\n");
         }
         next++;
     }
     return err;
 }
 
-unsigned char rdSensorReg16_8(unsigned int regID, unsigned char* regDat) {
+unsigned char rdSensorReg16_8(unsigned int regID, unsigned char *regDat)
+{
     sccb_bus_start();
-    if(0==sccb_bus_write_byte(0x78))
+    if (0 == sccb_bus_write_byte(0x78))
     {
         sccb_bus_stop();
-        return(0);
+        return (0);
     }
     delay_us(20);
     delay_us(20);
-    if(0==sccb_bus_write_byte(regID>>8))
+    if (0 == sccb_bus_write_byte(regID >> 8))
     {
         sccb_bus_stop();
-        return(0);
+        return (0);
     }
     delay_us(20);
-    if(0==sccb_bus_write_byte(regID))
+    if (0 == sccb_bus_write_byte(regID))
     {
         sccb_bus_stop();
-        return(0);
+        return (0);
     }
     delay_us(20);
     sccb_bus_stop();
 
     delay_us(20);
 
-
     sccb_bus_start();
-    if(0==sccb_bus_write_byte(0x79))
+    if (0 == sccb_bus_write_byte(0x79))
     {
         sccb_bus_stop();
-        return(0);
+        return (0);
     }
     delay_us(20);
-    *regDat=sccb_bus_read_byte();
+    *regDat = sccb_bus_read_byte();
     sccb_bus_send_noack();
     sccb_bus_stop();
-    return(1);
+    return (1);
 }
 
-void resetFirmware(int CS1, int CS2, int CS3, int CS4){
-    if (CS1 > -1 ){
-        write_reg(0x07, 0x80,CS1);
+void resetFirmware(int CS1, int CS2, int CS3, int CS4)
+{
+    if (CS1 > -1)
+    {
+        write_reg(0x07, 0x80, CS1);
         delay_ms(100);
-        write_reg(0x07, 0x00,CS1);
+        write_reg(0x07, 0x00, CS1);
         delay_ms(100);
-        if(sensor_model == OV5640 || sensor_model == OV5642){
-            write_reg(ARDUCHIP_FRAMES, 0x00,CAM_CS1);
+        if (sensor_model == OV5640 || sensor_model == OV5642)
+        {
+            write_reg(ARDUCHIP_FRAMES, 0x00, CAM_CS1);
             set_bit(ARDUCHIP_TIM, VSYNC_LEVEL_MASK, CAM_CS1);
         }
-
     }
-    if (CS2 > -1 ){
-        write_reg(0x07, 0x80,CS2);
+    if (CS2 > -1)
+    {
+        write_reg(0x07, 0x80, CS2);
         delay_ms(100);
-        write_reg(0x07, 0x00,CS2);
+        write_reg(0x07, 0x00, CS2);
         delay_ms(100);
-        if(sensor_model==OV5640 || sensor_model == OV5642){
-            write_reg(ARDUCHIP_FRAMES, 0x00,CAM_CS2);
+        if (sensor_model == OV5640 || sensor_model == OV5642)
+        {
+            write_reg(ARDUCHIP_FRAMES, 0x00, CAM_CS2);
             set_bit(ARDUCHIP_TIM, VSYNC_LEVEL_MASK, CAM_CS2);
         }
     }
-    if (CS3 > -1 ){
-        write_reg(0x07, 0x80,CS3);
+    if (CS3 > -1)
+    {
+        write_reg(0x07, 0x80, CS3);
         delay_ms(100);
-        write_reg(0x07, 0x00,CS3);
+        write_reg(0x07, 0x00, CS3);
         delay_ms(100);
-        if(sensor_model==OV5640 || sensor_model == OV5642){
-            write_reg(ARDUCHIP_FRAMES, 0x00,CAM_CS3);
+        if (sensor_model == OV5640 || sensor_model == OV5642)
+        {
+            write_reg(ARDUCHIP_FRAMES, 0x00, CAM_CS3);
             set_bit(ARDUCHIP_TIM, VSYNC_LEVEL_MASK, CAM_CS3);
         }
     }
-    if (CS4 > -1 ){
-        write_reg(0x07, 0x80,CS4);
+    if (CS4 > -1)
+    {
+        write_reg(0x07, 0x80, CS4);
         delay_ms(100);
-        write_reg(0x07, 0x00,CS4);
+        write_reg(0x07, 0x00, CS4);
         delay_ms(100);
-        if(sensor_model==OV5640 || sensor_model == OV5642){
-            write_reg(ARDUCHIP_FRAMES, 0x00,CAM_CS4);
+        if (sensor_model == OV5640 || sensor_model == OV5642)
+        {
+            write_reg(ARDUCHIP_FRAMES, 0x00, CAM_CS4);
             set_bit(ARDUCHIP_TIM, VSYNC_LEVEL_MASK, CAM_CS4);
         }
     }
-
 }
 
-void singleCapture(int CS){
-    int i , count;
-    //Flush the FIFO
+void singleCapture(int CS)
+{
+    int i, count;
+    // Flush the FIFO
     flush_fifo(CS);
-    //Start capture
+    // Start capture
     start_capture(CS);
-    while(!get_bit(ARDUCHIP_TRIG , CAP_DONE_MASK, CS)){;}
+    while (!get_bit(ARDUCHIP_TRIG, CAP_DONE_MASK, CS))
+    {
+        ;
+    }
     length = read_fifo_length(CS);
     count = length;
-    i = 0 ;
+    i = 0;
     CS_LOW(CS);
-    set_fifo_burst();//Set fifo burst mode
-    while (count--) {
+    set_fifo_burst(); // Set fifo burst mode
+    while (count--)
+    {
         readbuf[i++] = spiSendReceive(0x00);
     }
     count = 0;
     CS_HIGH(CS);
 }
 
+void Arducam_bus_detect(int CS1, int CS2, int CS3, int CS4)
+{
+    unsigned char vid, pid, temp;
 
-
-
-
-void Arducam_bus_detect(int CS1,int CS2,int CS3,int CS4){
-    unsigned char vid, pid,temp ;
-
-    if(CS1> -1){
-        while(1){
-            write_reg(ARDUCHIP_TEST1, 0x55 ,CS1 );
-            temp = read_reg(ARDUCHIP_TEST1 ,CS1 );
-            if (temp != 0x55){
-//                printf("SPI1 interface Error!\n");
+    // Making sure the SPI communication exists
+    if (CS1 > -1)
+    {
+        while (1)
+        {
+            // By the way the list of all registers that SPI accesses (on the camera's process) is in this table (page 6): https://www.arducam.com/downloads/shields/ArduCAM_Mini_2MP_Camera_Shield_Hardware_Application_Note.pdf
+            write_reg(ARDUCHIP_TEST1, 0x55, CS1);
+            temp = read_reg(ARDUCHIP_TEST1, CS1);
+            if (temp != 0x55)
+            {
                 delay_ms(1000);
                 continue;
             }
 
-            else{
-//                printf("SPI1 interface OK!\r\n");
+            else
+            {
                 break;
             }
         }
     }
 
-
-    if(CS2> -1){
-        while(1){
-            write_reg(ARDUCHIP_TEST1, 0x55 ,CS2 );
-            temp = read_reg(ARDUCHIP_TEST1 ,CS2 );
-            if (temp != 0x55){
-//                printf("SPI2 interface Error!\n");
+    if (CS2 > -1)
+    {
+        while (1)
+        {
+            write_reg(ARDUCHIP_TEST1, 0x55, CS2);
+            temp = read_reg(ARDUCHIP_TEST1, CS2);
+            if (temp != 0x55)
+            {
+                //                printf("SPI2 interface Error!\n");
                 delay_ms(1000);
                 continue;
             }
 
-            else{
-//                printf("SPI2 interface OK!\r\n");
+            else
+            {
+                //                printf("SPI2 interface OK!\r\n");
                 break;
             }
         }
     }
 
-    if(CS3> -1){
-        while(1){
-            write_reg(ARDUCHIP_TEST1, 0x55 ,CS3 );
-            temp = read_reg(ARDUCHIP_TEST1 ,CS3 );
-            if (temp != 0x55){
-//                printf("SPI3 interface Error!\n");
+    if (CS3 > -1)
+    {
+        while (1)
+        {
+            write_reg(ARDUCHIP_TEST1, 0x55, CS3);
+            temp = read_reg(ARDUCHIP_TEST1, CS3);
+            if (temp != 0x55)
+            {
+                //                printf("SPI3 interface Error!\n");
                 delay_ms(1000);
                 continue;
             }
 
-            else{
-//                printf("SPI3 interface OK!\r\n");
+            else
+            {
+                //                printf("SPI3 interface OK!\r\n");
                 break;
             }
         }
     }
-    if(CS4> -1){
-        while(1){
-            write_reg(ARDUCHIP_TEST1, 0x55 ,CS4 );
-            temp = read_reg(ARDUCHIP_TEST1 ,CS4 );
-            if (temp != 0x55){
-//                printf("SPI4 interface Error!\n");
+    if (CS4 > -1)
+    {
+        while (1)
+        {
+            write_reg(ARDUCHIP_TEST1, 0x55, CS4);
+            temp = read_reg(ARDUCHIP_TEST1, CS4);
+            if (temp != 0x55)
+            {
+                //                printf("SPI4 interface Error!\n");
                 delay_ms(1000);
                 continue;
             }
 
-            else{
-//                printf("SPI4 interface OK!\r\n");
+            else
+            {
+                //                printf("SPI4 interface OK!\r\n");
                 break;
             }
         }
     }
 
-
-    while(1){
+    while (1)
+    {
+        // Verifying the model of the camera
+        /*
+        Any image sensor stores its identifying information in the VID and PID registers
+        For eg, OV5640 can be identified by (vid == 0x56) && (pid == 0x40)
+        the 0xff stuff is a mystery
+        why pid == 0x40 isn't enough to identify OV2640 is a mystery too
+        idk just live with it
+        */
         sensor_addr = 0x60;
         wrSensorReg8_8(0xff, 0x01);
         rdSensorReg8_8(OV2640_CHIPID_HIGH, &vid);
         rdSensorReg8_8(OV2640_CHIPID_LOW, &pid);
-        if ((vid != 0x26 ) && (( pid != 0x41 ) || ( pid != 0x42 ))) {
-//            printf("Can't find OV2640 module!\r\n");
-        } else{
-            sensor_model =  OV2640 ;
-//            printf("OV2640 detected.\r\n");
+        if ((vid != 0x26) && ((pid != 0x41) || (pid != 0x42)))
+        {
+            //            printf("Can't find OV2640 module!\r\n");
+        }
+        else
+        {
+            sensor_model = OV2640;
+            //            printf("OV2640 detected.\r\n");
             break;
         }
     }
 }
-
-
-
-
-
