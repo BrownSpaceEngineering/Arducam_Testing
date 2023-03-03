@@ -57,7 +57,10 @@ int main(void)
 
     Arducam_bus_detect(CAM_CS1, -1, -1, -1);
 
+    // black box function
     resetFirmware(CAM_CS1, -1, -1, -1);
+
+    // Setup image sensor registers (via I2C)
     ArduCAM_Init(sensor_model);
 
     // Take photo

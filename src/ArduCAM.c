@@ -11,9 +11,14 @@ void ArduCAM_Init(unsigned char model)
 {
     wrSensorReg8_8(0xff, 0x01);
     wrSensorReg8_8(0x12, 0x80);
+    // hardcoded above
     if (m_fmt == JPEG)
     {
+        // Notice this is Regs plural not Reg
+        // If you look at the arrays it's an array of tuples: {register, value}
+        // They're actually implicit structs, not really arrays, but might as well be arrays
         wrSensorRegs8_8(OV2640_JPEG_INIT);
+        // YUV42 is a color space
         wrSensorRegs8_8(OV2640_YUV422);
         wrSensorRegs8_8(OV2640_JPEG);
         wrSensorReg8_8(0xff, 0x01);
@@ -24,6 +29,7 @@ void ArduCAM_Init(unsigned char model)
     {
         wrSensorRegs8_8(OV2640_QVGA);
     }
+    // redundantly does the same thing as wrSensorRegs8_8(OV2640_320x240_JPEG)? Maybe
     OV2640_set_JPEG_size(OV2640_320x240);
 }
 
@@ -425,10 +431,12 @@ void resetFirmware(int CS1, int CS2, int CS3, int CS4)
 {
     if (CS1 > -1)
     {
+        // these four lines are pretty black box.
         write_reg(0x07, 0x80, CS1);
         delay_ms(100);
         write_reg(0x07, 0x00, CS1);
         delay_ms(100);
+        // the condition isn't entered becasue our camera model does not match either
         if (sensor_model == OV5640 || sensor_model == OV5642)
         {
             write_reg(ARDUCHIP_FRAMES, 0x00, CAM_CS1);
@@ -476,10 +484,15 @@ void resetFirmware(int CS1, int CS2, int CS3, int CS4)
 void singleCapture(int CS)
 {
     int i, count;
-    // Flush the FIFO
+    // Flush the FIFO (queue that the camera uses to send the image data)
+    // flush i.e. clear
+    // under the hood if you check this function it's done by setting some SPI register (on the signal processor)
     flush_fifo(CS);
     // Start capture
     start_capture(CS);
+
+    // ARDUCHIP_TRIG is the trigger source which tells you when the camera is done capturing
+    // You wanna block until the capture is done
     while (!get_bit(ARDUCHIP_TRIG, CAP_DONE_MASK, CS))
     {
         ;
@@ -487,7 +500,12 @@ void singleCapture(int CS)
     length = read_fifo_length(CS);
     count = length;
     i = 0;
+
+    // remeber to set low when doing spiSendRecieve operations, then high. This is automatically handled when we do
     CS_LOW(CS);
+    // since we're in burst mode (maybe?) the camera is instructed to send everything possible that is on the fifo queue irrespective of the address we pass in to read on the signal processor.
+    // So we can take advantage of this and just call spiSednRecieve(blah) then we get the right data.
+    // Alternatively we can call read_reg but that does the CL_LOW/HIGH thing every time it's called which is inefficient.
     set_fifo_burst(); // Set fifo burst mode
     while (count--)
     {
