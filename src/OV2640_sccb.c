@@ -38,7 +38,8 @@ void OV2640_sccb_read_16bit_reg(uint16_t reg_id, unsigned char *reg_data_buf) {
     struct io_descriptor io;
     i2c_m_sync_get_io_descriptor(&I2C_0, &io);
     i2c_m_sync_enable(&I2C_0);
-    i2c_m_sync_set_slaveaddr(&I2C_0, OV2640_I2C_ADDR, I2C_M_SEVEN);
+    // TODO: figure out why the sample code uses 0x78
+    i2c_m_sync_set_slaveaddr(&I2C_0, 0x78, I2C_M_SEVEN);
     io_write(&io, &reg_id_masked, 1);
     io_read(&io, reg_data_buf, 1);
 }
@@ -74,4 +75,22 @@ void OV2640_sccb_write_16bit_reg(uint16_t reg_id, uint8_t reg_data) {
     // May be an issue for this one b/c we need *two* sensor addr bytes
     io_write(&io, &reg_id, 2);
     io_write(&io, &reg_data, 1);
+}
+
+// TODO: status code
+void OV2640_sccb_write_8bit_reg_array(const struct sensor_reg reglist[]) {
+    int err = 0;
+    unsigned int reg_addr = 0;
+    unsigned int reg_val = 0;
+    const struct sensor_reg *next = reglist;
+    while ((reg_addr != 0xff) | (reg_val != 0xff))
+    {
+        reg_addr =next->reg;
+        reg_val = next->val;
+        // err = OV2640_sccb_write_8bit_reg(reg_addr, reg_val);
+        OV2640_sccb_write_8bit_reg(reg_addr, reg_val);
+        delay_ms(10);
+        next++;
+    }
+    // return error
 }

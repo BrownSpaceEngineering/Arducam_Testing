@@ -6,6 +6,7 @@
 
 #include "OV2640_Camera_Commands.h"
 #include "OV2640_regs.h"
+#include "OV2640_sccb.h"
 
 // How many times to attempt SPI and camera detection before giving up
 #define OV2640_DETECTION_ATTEMPTS 10
@@ -26,8 +27,8 @@ void OV2640_arducam_init(void);
 void OV2640_write_spi_reg(int address, int value);
 uint8_t OV2640_read_spi_reg(int address);
 uint8_t OV2640_spi_transceive(uint8_t send);
-void OV2640_i2c_sccb_reg_write_8_8(uint8_t reg_id, uint8_t *reg_data);
-void OV2640_i2c_sccb_reg_write_16_8(uint16_t reg_id, uint8_t *reg_data);
+//void OV2640_i2c_sccb_reg_write_8_8(uint8_t reg_id, uint8_t *reg_data);
+//void OV2640_i2c_sccb_reg_write_16_8(uint16_t reg_id, uint8_t *reg_data);
 
 
 // TODO: status code
@@ -144,6 +145,31 @@ void OV2640_reset_firmware(void) {
     delay_ms(100);
 }
 
+// TODO: status code
+/**
+ * Sets the output resolution of the camera.
+ * @param size One of the constants OV2640_[resolution] indicating the desired resolution.
+ */
+ void OV2640_set_JPEG_size(unsigned char size) {
+    switch(size) {
+        case OV2640_160x120:
+            OV2640_sccb_write_8bit_reg_array(OV2640_160x120_JPEG);
+            break;
+        case OV2640_320x240:
+            OV2640_sccb_write_8bit_reg_array(OV2640_320x240_JPEG);
+            break;
+        case OV2640_640x480:
+            OV2640_sccb_write_8bit_reg_array(OV2640_640x480_JPEG);
+            break;
+        case OV2640_1024x768:
+            OV2640_sccb_write_8bit_reg_array(OV2640_1024x768_JPEG);
+            break;
+        default:
+            OV2640_sccb_write_8bit_reg_array(OV2640_320x240_JPEG);
+            break;
+    }
+}
+
 // TODO: return a status code
 /**
  * Performs the ArduCAM initialization sequence, including configuring the
@@ -153,18 +179,18 @@ void OV2640_reset_firmware(void) {
 void OV2640_arducam_init(void) {
     // TODO: check these calls
     // These are black-box values pulled from the ArduCAM sample code
-    OV2640_i2c_sccb_reg_write_8_8(0xff, 0x01);
-    OV2640_i2c_sccb_reg_write_8_8(0x12, 0x80);
-    wrSensorRegs8_8(OV2640_JPEG_INIT);
+    OV2640_sccb_write_8bit_reg(0xff, 0x01);
+    OV2640_sccb_write_8bit_reg(0x12, 0x80);
+    OV2640_sccb_write_8bit_reg_array(OV2640_JPEG_INIT);
     // TODO: there may be more efficient color encodings (e.g., YUV411) that we
     // may want to explore -- YUV422 is just the default used in the ArduCAM
     // sample code
-    wrSensorRegs8_8(OV2640_YUV422);
-    wrSensorRegs8_8(OV2640_JPEG);
+    OV2640_sccb_write_8bit_reg_array(OV2640_YUV422);
+    OV2640_sccb_write_8bit_reg_array(OV2640_JPEG);
     // More magic numbers from the ArduCAM code
-    OV2640_i2c_sccb_reg_write_8_8(0xff, 0x01);
-    OV2640_i2c_sccb_reg_write_8_8(0x15, 0x00);
-    wrSensorRegs8_8(OV2640_DEFAULT_RESOLUTION);
+    OV2640_sccb_write_8bit_reg(0xff, 0x01);
+    OV2640_sccb_write_8bit_reg(0x15, 0x00);
+    OV2640_set_JPEG_size(OV2640_DEFAULT_RESOLUTION);
 }
 
 // TODO: return a status code
