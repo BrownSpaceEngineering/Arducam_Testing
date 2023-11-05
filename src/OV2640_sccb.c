@@ -3,8 +3,9 @@
  * Created: 12/30/21
  * Author: Brown Space Engineering
  */
-#include "OV2640_sccb.h"
+
 #include "OV2640_regs.h"
+#include "OV2640_sccb.h"
 
 
 // TODO: return a status code (check the io_write/read & i2c_* calls!)

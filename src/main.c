@@ -7,7 +7,7 @@ int main(void) {
 	/* Initializes MCU, drivers and middleware */
 	atmel_start_init();
 
-    OV2640_init();
+    OV2640_init(); // FIXME: this is taking a really long time!
     OV2640_set_resolution(OV2640_160x120);
     uint32_t length = OV2640_capture(readbuf);
 

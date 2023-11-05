@@ -4,9 +4,9 @@
  * Author: Brown Space Engineering
  */
 
-#include "OV2640_Camera_Commands.h"
 #include "OV2640_regs.h"
 #include "OV2640_sccb.h"
+#include "OV2640_Camera_Commands.h"
 
 // How many times to attempt SPI and camera detection before giving up
 #define OV2640_DETECTION_ATTEMPTS 10
