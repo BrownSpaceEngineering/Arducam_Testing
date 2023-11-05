@@ -27,6 +27,8 @@ void OV2640_arducam_init(void);
 void OV2640_write_spi_reg(int address, int value);
 uint8_t OV2640_read_spi_reg(int address);
 uint8_t OV2640_spi_transceive(uint8_t send);
+uint8_t OV2640_read_reg_bit(uint8_t addr, uint8_t bit);
+uint32_t OV2640_read_fifo_image_buffer_length();
 //void OV2640_i2c_sccb_reg_write_8_8(uint8_t reg_id, uint8_t *reg_data);
 //void OV2640_i2c_sccb_reg_write_16_8(uint16_t reg_id, uint8_t *reg_data);
 
@@ -62,6 +64,29 @@ void OV2640_init(void) {
     // Perform camera initialization
     // TODO: error check
     OV2640_arducam_init();
+}
+
+// TODO: status code
+uint32_t OV2640_capture(uint8_t *buf) {
+    uint32_t i, count;
+    // Flush the FIFO
+    OV2640_write_spi_reg(ARDUCHIP_FIFO, FIFO_CLEAR_MASK);
+    // Start capture
+    OV2640_write_spi_reg(ARDUCHIP_FIFO, FIFO_START_MASK);
+    // Wait for the capture to finish
+    // TODO: make sure this won't stall
+    while(!OV2640_read_reg_bit(ARDUCHIP_TRIG , CAP_DONE_MASK)){;}
+
+    count = OV2640_read_fifo_image_buffer_length();
+    i = 0;
+    CS_LOW();
+    // Enable FIFO burst mode
+    OV2640_spi_transceive(BURST_FIFO_READ);
+    // Read all bytes from the FIFO
+    while (count--) {
+        buf[i++] = OV2640_spi_transceive(0x00);
+    }
+    CS_HIGH();
 }
 
 // TODO: return a status code
@@ -222,6 +247,32 @@ uint8_t OV2640_read_spi_reg(int address) {
     value = OV2640_spi_transceive(0x00);  // dummy byte for read tick
     CS_HIGH();
     return value;
+}
+
+/**
+ * Reads a specified bit from an indicated SPI register.
+ * @param addr the address of the register.
+ * @param bit the bit to read.
+ * @return the indicated bit of the value stored at SPI register addr.
+ */
+uint8_t OV2640_read_reg_bit(uint8_t addr, uint8_t bit) {
+    uint8_t temp;
+    temp = OV2640_read_spi_reg(addr);
+    temp = temp & bit;
+    return temp;
+}
+
+/**
+ * Returns the length of the image FIFO buffer.
+ * @return the length of the buffer.
+ */
+uint32_t OV2640_read_fifo_image_buffer_length() {
+    uint32_t len1, len2, len3, len = 0;
+    len1 = OV2640_read_spi_reg(FIFO_SIZE1);
+    len2 = OV2640_read_spi_reg(FIFO_SIZE2);
+    len3 = OV2640_read_spi_reg(FIFO_SIZE3) & 0x7f;
+    len = ((len3 << 16) | (len2 << 8) | len1) & 0x07fffff;
+    return len;
 }
 
 // TODO: status code

@@ -10,6 +10,7 @@
 #define PVDX_ARDUCAM_DRIVER_OV2640_SCCB_H
 
 #include <atmel_start.h>
+#include "OV2640_regs.h"
 
 // TODO: all of these need status codes
 void OV2640_sccb_start_tx(void);

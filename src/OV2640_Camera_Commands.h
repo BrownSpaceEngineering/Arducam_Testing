@@ -24,7 +24,7 @@
 
 // TODO: all of these need status codes
 void OV2640_init(void);
-uint32_t OV2640_capture(char **buffer);
+uint32_t OV2640_capture(uint8_t *buffer);
 void OV2640_set_resolution(uint8_t resolution);
 void OV2640_set_light_mode(uint8_t mode);
 void OV2640_set_saturation(int8_t saturation);

@@ -19,6 +19,22 @@
 // Model-specific sensor address
 #define OV2640_I2C_ADDR 0x60
 
+// FIFO constants
+#define ARDUCHIP_FIFO      		0x04  //FIFO and I2C control
+#define BURST_FIFO_READ			0x3C  //Burst FIFO read operation
+#define SINGLE_FIFO_READ		0x3D  //Single FIFO read operation
+#define FIFO_CLEAR_MASK    		0x01
+#define FIFO_START_MASK    		0x02
+
+// Constants for checking capture termination
+#define ARDUCHIP_TRIG      		0x41  //Trigger source
+#define CAP_DONE_MASK      		0x08
+
+// FIFO buffer register constants
+#define FIFO_SIZE1				0x42  //Camera write FIFO size[7:0] for burst to read
+#define FIFO_SIZE2				0x43  //Camera write FIFO size[15:8]
+#define FIFO_SIZE3				0x44  //Camera write FIFO size[18:16]
+
 // Representation of register assignments
 struct sensor_reg {
     unsigned int reg;
