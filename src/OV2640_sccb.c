@@ -52,12 +52,30 @@ void OV2640_sccb_read_16bit_reg(uint16_t reg_id, unsigned char *reg_data_buf) {
  * @param reg_data the data (byte) to write to the register.
  */
 void OV2640_sccb_write_8bit_reg(uint8_t reg_id, uint8_t reg_data) {
+    int32_t err;
     struct io_descriptor *io;
-    i2c_m_sync_get_io_descriptor(&I2C_0, &io);
-    i2c_m_sync_enable(&I2C_0);
-    i2c_m_sync_set_slaveaddr(&I2C_0, OV2640_I2C_ADDR, I2C_M_SEVEN);
-    io_write(io, &reg_id, 1);
-    io_write(io, &reg_data, 1);
+    err = i2c_m_sync_get_io_descriptor(&I2C_0, &io);
+    if (err != ERR_NONE) {
+        // TODO: error
+    }
+    err = i2c_m_sync_enable(&I2C_0);
+    if (err != ERR_NONE) {
+        // TODO: error
+    }
+    err = i2c_m_sync_set_slaveaddr(&I2C_0, OV2640_I2C_ADDR, I2C_M_SEVEN);
+    if (err != ERR_NONE) {
+        // TODO: error
+    }
+    // FIXME: getting error code 96:
+    // https://asf.microchip.com/docs/latest/samd21/html/group__group__sam0__utils__status__codes.html
+    err = io_write(io, &reg_id, 1);
+    if (err != ERR_NONE) {
+        // TODO: error
+    }
+    err = io_write(io, &reg_data, 1);
+    if (err != ERR_NONE) {
+        // TODO: error
+    }
 }
 
 // TODO: return a status code (check the io_writes & i2c_* calls!)

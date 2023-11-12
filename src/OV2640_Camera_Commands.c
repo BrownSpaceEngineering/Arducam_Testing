@@ -139,7 +139,7 @@ uint8_t OV2640_spi_test(void) {
  * @return 1 if the test succeeds, 0 if it fails
  */
 uint8_t OV2640_module_detect(void) {
-    unsigned char vid, pid;
+    unsigned char vid, pid = 0;
     uint8_t attempts = 0;
     while (attempts < OV2640_DETECTION_ATTEMPTS) {
         // TODO: check these calls
