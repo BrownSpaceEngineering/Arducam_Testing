@@ -57,24 +57,28 @@ void OV2640_sccb_write_8bit_reg(uint8_t reg_id, uint8_t reg_data) {
     err = i2c_m_sync_get_io_descriptor(&I2C_0, &io);
     if (err != ERR_NONE) {
         // TODO: error
+        ASSERT(false);
     }
     err = i2c_m_sync_enable(&I2C_0);
     if (err != ERR_NONE) {
         // TODO: error
+        ASSERT(false);
     }
-    err = i2c_m_sync_set_slaveaddr(&I2C_0, OV2640_I2C_ADDR, I2C_M_SEVEN);
-    if (err != ERR_NONE) {
-        // TODO: error
-    }
-    // FIXME: getting error code 96:
+    // FIXME: figure out how to error check this -- it returns *the address*, NOT an error code!
+    i2c_m_sync_set_slaveaddr(&I2C_0, OV2640_I2C_ADDR, I2C_M_SEVEN);
     // https://asf.microchip.com/docs/latest/samd21/html/group__group__sam0__utils__status__codes.html
-    err = io_write(io, &reg_id, 1);
-    if (err != ERR_NONE) {
+    // io_write should return the number of bytes (1) written
+    // FIXME: this is not returning 1!
+    io_write(io, &reg_id, 1);
+    io_write(io, &reg_data, 1);
+    int32_t bytes_written = io_write(io, &reg_id, 1);
+    if (bytes_written != 1) {
         // TODO: error
+        ASSERT(false);
     }
-    err = io_write(io, &reg_data, 1);
-    if (err != ERR_NONE) {
+    if (io_write(io, &reg_data, 1) != 1) {
         // TODO: error
+        ASSERT(false);
     }
 }
 

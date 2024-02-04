@@ -87,6 +87,7 @@ uint32_t OV2640_capture(uint8_t *buf) {
         buf[i++] = OV2640_spi_transceive(0x00);
     }
     CS_HIGH();
+    return i;
 }
 
 // TODO: return a status code
