@@ -16,6 +16,8 @@
 #define OV2640_DETECTION_SUCCESS 1
 #define OV2640_DETECTION_FAILURE 0
 
+#define OV2640_MAX_CAPTURE_WAIT_ATTEMPTS 10000
+
 #define CS_LOW() gpio_set_pin_level(OV2640_CS, 0)
 #define CS_HIGH() gpio_set_pin_level(OV2640_CS, 1)
 
@@ -75,9 +77,16 @@ uint32_t OV2640_capture(uint8_t *buf) {
     OV2640_write_spi_reg(ARDUCHIP_FIFO, FIFO_START_MASK);
     // Wait for the capture to finish
     // TODO: make sure this won't stall
-    while(!OV2640_read_reg_bit(ARDUCHIP_TRIG , CAP_DONE_MASK)){;}
+    uint32_t attempts = 0;
+    while(!OV2640_read_reg_bit(ARDUCHIP_TRIG , CAP_DONE_MASK)){
+        attempts++;
+        if (attempts > OV2640_MAX_CAPTURE_WAIT_ATTEMPTS) {
+            return -1;
+        }
+    }
 
     count = OV2640_read_fifo_image_buffer_length();
+    // TODO: detect invalid count value and prevent buffer (buf) overflow
     i = 0;
     CS_LOW();
     // Enable FIFO burst mode

@@ -1,171 +1,142 @@
-# Generic Makefile for Atmel Start projects
+###############################################################################
+##################### ADDING SOMETHING?  READ THIS FIRST! #####################
+###############################################################################
+###
+###  When adding a new C file ot the source, you must do 2 things:
+###    - Add the file to the OBJS list below (with a .o extension)
+###    - If it is in a new directory, Add the directory to the EXTRA_VPATH list below (with a .c extension)
+###  Remember to add the trailing \ to the end of each line!
+###
+###############################################################################
+###############################################################################
+###############################################################################
 
-################################################################################
-# Project configuration (edit if you add directories)
-################################################################################
 
-# List the subdirectories for project source and header files
-PROJ_SRC_DIRS := \
-src
 
-PROJ_INCLUDE_DIRS := $(PROJ_SRC_DIRS)
+### ALL C FILES SHOULD HAVE AN OBJECT FILE LISTED HERE ###
+export OBJS := \
+../src/main.o \
+../src/OV2640_Camera_Commands.o \
+../src/ov2640_regs.o \
+../src/OV2640_sccb.o \
+../src/misc/printf/SEGGER_RTT.o \
+../src/misc/printf/SEGGER_RTT_printf.o \
 
-# Specify the dir for the ASF library
-ASF_DIR := asf-samd21
 
-# List the subdirectories for Atmel source and header files
-# Copy this directly from SUB_DIRS in $(ASF_DIR)/gcc/Makefile,
-# but make sure to add ./
-ATMEL_SRC_DIRS :=  \
-./ \
-hpl/systick \
-hpl/dmac \
-hal/src \
-samd21a/gcc \
-hpl/pm \
-hpl/sysctrl \
-hal/utils/src \
-hpl/sercom \
-examples \
-hpl/gclk \
-samd21a/gcc/gcc \
-hpl/core
 
-# Add these based on DIR_INCLUDES in $(ASF_DIR)/gcc/Makefile,
-# by copying the lines after that variable here and performing the following:
-# 1) Replace '-I"../' with '' (nothing)
-# 2) Replace the trailing '"' characters by replacing '" \' with ' \'. 
-# 3) Make sure to include ./ by adding './ \'
-# Alternatively, derive this based on ATMEL_SRC_DIRS above
-# if DIR_INCLUDES doesn't exist
-ATMEL_INCLUDE_DIRS := \
-./ \
-config \
-examples \
-hal/include \
-hal/utils/include  \
-hpl/core  \
-hpl/dmac  \
-hpl/gclk  \
-hpl/pm  \
-hpl/port  \
-hpl/sercom  \
-hpl/sysctrl  \
-hpl/systick  \
-hri  \
-CMSIS/Core/Include  \
-samd21a/include
+### ALL DIRECTORIES WITH SOURCE FILES MUST BE LISTED HERE ###
+### THESE ARE WRITTEN RELATIVE TO THE ./ASF/gcc/Makefile FILE ###
+export EXTRA_VPATH := \
+../../src \
+../../src/misc \
+../../src/misc/printf \
 
-# Top-level directories make should look for things in
-vpath %.c src/ $(ASF_DIR)/
-vpath %.s src/ $(ASF_DIR)/
-vpath %.S src/ $(ASF_DIR)/
 
-############# Misc configuration #############
-# CHANGE ME
-OUTPUT_FILES_PREFIX := build/bse-fsw-template
-OBJ_DIR := obj
-GCC_ARGS := -x c -mthumb -DDEBUG -O0 -ffunction-sections -mlong-calls -g3 -Wall -c -std=gnu99
+###############################################################################
+###############################################################################
+###############################################################################
 
-############# Device configuration #############
-# not sure if changing these will work
-DEVICE_LINKER_SCRIPT := $(ASF_DIR)/samd21a/gcc/gcc/samd21j18a_flash.ld
-MCPU := cortex-m0plus
-DEVICE_FLAG := __SAMD21J18A__
 
-################################################################################
-# Variable generation. Do not edit unless you know what you're doing!
-################################################################################
+#Technical stuff
 
-# Prefix atmel dirs with root dir
-ATMEL_SRC_DIRS_FULL 	:= $(addprefix $(ASF_DIR)/, $(ATMEL_SRC_DIRS))
-ATMEL_INCLUDE_DIRS_FULL := $(addprefix $(ASF_DIR)/, $(ATMEL_INCLUDE_DIRS))
+#Makefile usually uses /bin/sh to evaluate commands, so we need to change it to /bin/bash
+#To allow for the if statement in the connect target to execute correctly
+SHELL := /bin/bash 
 
-# Find all source files in the directories
-ALL_SRC_DIRS := $(PROJ_SRC_DIRS) $(ATMEL_SRC_DIRS_FULL)
-SRCS  := $(foreach dr, $(ALL_SRC_DIRS), $(wildcard $(dr)/*.[csS]))
-# Create all names of all corresponding object files
-OBJS := $(addprefix $(OBJ_DIR)/, $(addsuffix .o, $(basename $(SRCS))))
-OBJS_AS_ARGS := $(foreach ob, $(OBJS), "$(ob)")
-# Create all names of all corresponding dependency files
-DEPS := $(OBJS:%.o=%.d)
-DEPS_AS_ARGS := $(foreach dep, $(DEPS), "$(dep)")
+#Path to the child makefile
+#This makefile is used to build the ASF files, and is provided by Atmel Start
+CHILD_MAKEFILE_PATH := ./ASF/gcc
 
-# List the include files as linker args
-ALL_INCLUDE_DIRS := $(PROJ_INCLUDE_DIRS) $(ATMEL_INCLUDE_DIRS_FULL)
-INCLUDE_DIRS_AS_FLAGS := $(foreach dir, $(ALL_INCLUDE_DIRS), -I"$(dir)")
+# Ensure that MK_DIR is set even when none of the checks are hit
+export MK_DIR := mkdir -p
 
-# Outputs
-OUTPUT_FILE_PATH += $(OUTPUT_FILES_PREFIX).elf
-OUTPUT_FILE_PATH_AS_ARGS += $(OUTPUT_FILE_PATH)
-
-################################################################################
-# Makefile targets. Do not edit unless you know what you're doing!
-################################################################################
-GCC := "arm-none-eabi-gcc"
-GCC_ARGS += -D$(DEVICE_FLAG) -mcpu=$(MCPU)
-LINKER_ARGS += 
-
-ifdef SystemRoot
-	SHELL = cmd.exe
-	MK_DIR = mkdir
+# Use gsed on macOS
+ifeq ($(shell uname), Darwin)
+	SED = gsed
 else
-	MK_DIR = mkdir -p
+	SED = sed
 endif
 
-# All Target
-all: $(ALL_DIRS) $(OUTPUT_FILE_PATH) $(OBJS)
+# Compiler flags
+CFLAGS_POSITIVE := -Wall -Wextra -Werror -Wshadow
+CFLAGS_NEGATIVE += -Wno-unused-parameter #Because some ASF functions have unused parameters, supress this warning
+CFLAGS := $(CFLAGS_POSITIVE) $(CFLAGS_NEGATIVE)
 
-$(ALL_DIRS):
-	$(MK_DIR) "$@"
 
-# Linker target
-$(OUTPUT_FILE_PATH): $(OBJS)
-	@echo ======== Linking target: $@ ========
-	$(shell  $(MK_DIR) "$(dir $@)")
-	$(GCC) -o $(OUTPUT_FILES_PREFIX).elf $(OBJS_AS_ARGS) \
-		-Wl,--start-group -lm -Wl,--end-group -mthumb \
-		-Wl,-Map="$(OUTPUT_FILES_PREFIX).map" --specs=nano.specs -Wl,--gc-sections -mcpu=$(MCPU) \
-	 	$(INCLUDE_DIRS_AS_FLAGS) \
-		-T"$(DEVICE_LINKER_SCRIPT)" \
-		-L"$(basename $(DEVICE_LINKER_SCRIPT))"
-	@echo Finished building target: $@
+### All these variables are exported to the child makefile, and affect its behavior ###
+export SUB_DIRS := $(shell for dir in $(EXTRA_VPATH); do echo $$dir | $(SED) 's|\.\./||g'; done)
 
-	"arm-none-eabi-objcopy" -O binary "$(OUTPUT_FILES_PREFIX).elf" "$(OUTPUT_FILES_PREFIX).bin"
-	"arm-none-eabi-objcopy" -O ihex -R .eeprom -R .fuse -R .lock -R .signature  \
-        "$(OUTPUT_FILES_PREFIX).elf" "$(OUTPUT_FILES_PREFIX).hex"
-	"arm-none-eabi-objcopy" -j .eeprom --set-section-flags=.eeprom=alloc,load --change-section-lma \
-        .eeprom=0 --no-change-warnings -O binary "$(OUTPUT_FILES_PREFIX).elf" \
-        "$(OUTPUT_FILES_PREFIX).eep" || exit 0
-	"arm-none-eabi-objdump" -h -S "$(OUTPUT_FILES_PREFIX).elf" > "$(OUTPUT_FILES_PREFIX).lss"
-	"arm-none-eabi-size" "$(OUTPUT_FILES_PREFIX).elf"
-	@echo ======== Finished linking ========
+export DIR_INCLUDES := $(CFLAGS) #Slightly hacky way to inject cflags into the child makefile
+DIR_INCLUDES += $(foreach dir,$(EXTRA_VPATH),-I"$(dir)" )
 
-# Compiler target
-$(OBJ_DIR)/%.o: %.[csS]
-	@echo ======== Building file: $< ========
-	$(shell  $(MK_DIR) "$(dir $@)")
-	$(GCC) $(GCC_ARGS) $(INCLUDE_DIRS_AS_FLAGS) \
-		-MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)" -o "$@" "$<"
-	@echo ======== Finished building ========
-	@echo ""
-	
-# Detect changes in the dependent files and recompile the respective object files.
-ifneq ($(MAKECMDGOALS),clean)
-ifneq ($(strip $(DEPS)),)
--include $(DEPS)
-endif
-endif
+export OBJS_AS_ARGS := $(foreach obj,$(OBJS),$(patsubst ../%,%,$(obj)))
 
-connect:
-	@echo Make sure openocd is running!
-	arm-none-eabi-gdb -iex "target extended-remote localhost:3333" $(OUTPUT_FILE_PATH)
+export DEPS_AS_ARGS := $(patsubst %.o,%.d,$(OBJS_AS_ARGS))
 
+# Print out DIR_INCLUDES for debugging
+#$(info OBJS_AS_ARGS: $(OBJS_AS_ARGS))
+
+# Default target
+all:
+	@$(MAKE) -C $(CHILD_MAKEFILE_PATH) \
+	&& cp -f ./ASF/gcc/PVDXos.elf ./ \
+	&& echo " --- Finished Building PVDXos.elf --- "
+
+# Clean target
 clean:
-	rm -f $(OBJS_AS_ARGS)
-	rm -f $(OUTPUT_FILE_PATH)
-	rm -f $(DEPS_AS_ARGS)
-	rm -rf $(OBJ_DIR)
-	rm -f $(OUTPUT_FILES_PREFIX).a $(OUTPUT_FILES_PREFIX).hex $(OUTPUT_FILES_PREFIX).bin \
-        $(OUTPUT_FILES_PREFIX).lss $(OUTPUT_FILES_PREFIX).eep $(OUTPUT_FILES_PREFIX).map \
-        $(OUTPUT_FILES_PREFIX).srec
+	@$(MAKE) -C $(CHILD_MAKEFILE_PATH) clean \
+	&& rm -f ./PVDXos.elf \
+	&& echo " --- Cleaned Build Files --- "
+
+# Connects to remote target, loads program, and sets breakpoint at main
+connect:
+ifeq (,$(findstring microsoft,$(shell uname -r))) #Detects a WSL kernel name, and runs a WSL-specific command for connecting to the GDB server
+	@gdb -ex "target remote localhost:2331" -ex "load" -ex "monitor halt" -ex "monitor reset" -ex "b main" -ex "continue" ./PVDXos.elf
+else #Run the windows-specific command
+	@hostname=$(shell hostname) && \
+	gdb-multiarch -ex "target remote $$hostname.local:2331" -ex "load" -ex "monitor halt" -ex "monitor reset" -ex "b main" -ex "continue" ./PVDXos.elf
+endif
+
+# When updating the ASF configuration, this must be run once in order to automatically integrate the new ASF config
+# Hopefully nobody ever needs to touch this, but you can add to it if you want to automatically trigger an action when the ASF is updated
+# The worst part of this is step 6, making text modifications to the stock ASF Makefile
+# IF YOU MODIFY STEP 6, PLEASE MAKE SURE YOU KNOW WHAT YOU'RE DOING
+update_asf:
+	@if [ ! -f ASF.atzip ]; then \
+		echo "ASF.atzip not found in the current directory! (Make sure spelling and capitalization is exact)"; \
+		echo " --- Operation Aborted --- "; \
+		exit 1; \
+	fi;
+	@read -p "WARNING -- Are you sure you want to REPLACE the ASF with ASF.atzip? [Y/N] " confirm; \
+	if [ "$$confirm" != "y" ] && [ "$$confirm" != "Y" ]; then \
+		echo " --- Operation aborted --- "; \
+		exit 1; \
+	fi;
+	@echo "(0) Starting..." \
+	&& rm -rf ./ASF \
+	&& echo "(1) ASF Dir Removed" \
+	&& rm -f ./atmel_start_config.atstart \
+	&& echo "(2) ASF Config Removed" \
+	&& mkdir -p ASF \
+	&& echo "(3) ASF Dir Re-Created" \
+	&& echo "(4.1) Unzipping ASF.atzip (this may take a sec...)" \
+	&& unzip -q ASF.atzip -d ASF \
+	&& echo "(4.2) ASF Unzipped" \
+	&& cp -f ./ASF/atmel_start_config.atstart ./ \
+	&& echo "(5) ASF Config Lifted" \
+	&& $(SED) -i 's/\$$(\@:%\.o=%\.d)/$$(patsubst ..\/%,%, \$$(\@:%\.o=%\.d))/g' ./ASF/gcc/Makefile \
+	&& echo "(6.1) ASF Makefile: GCC dependency filepaths corrected" \
+	&& $(SED) -i 's/\$$(\@:%\.o=%\.o)/$$(patsubst ..\/%,%, \$$(\@:%\.o=%\.o))/g' ./ASF/gcc/Makefile \
+	&& echo "(6.2) ASF Makefile: GCC object filepaths corrected" \
+	&& $(SED) -i 's/\$$@/\$$(strip \$$(patsubst ..\/%, %, $$@))/g' ./ASF/gcc/Makefile \
+	&& echo "(6.3) ASF Makefile: GCC output filepaths corrected" \
+	&& $(SED) -i '/main/d' ./ASF/gcc/Makefile \
+	&& echo "(6.4) ASF Makefile: References to ASF main.c removed" \
+	&& rm -f ./ASF/main.c \
+	&& echo "(7) ASF main.c Removed" \
+	&& $(SED) -i 's/AtmelStart/PVDXos/g' ./ASF/gcc/Makefile \
+	&& echo "(8) ASF Makefile: Project name updated to PVDXos" \
+	&& echo " --- Finished Integrating ASF --- "
+
+
+

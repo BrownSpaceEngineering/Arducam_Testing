@@ -1,108 +1,216 @@
-/*
- * OV2640_sccb.c
- * Created: 12/30/21
- * Author: Brown Space Engineering
- */
-
-#include "OV2640_regs.h"
 #include "OV2640_sccb.h"
 
+#define sda_port        GPIO(GPIO_PORTA, 8)
+#define scl_port        GPIO(GPIO_PORTA, 9)
 
-// TODO: return a status code (check the io_write/read & i2c_* calls!)
-/**
- * Reads a sensor register with an 8-bit address over I2C.
- * @param reg_id the ID of the register to write.
- * @param reg_data_buf a buffer in which the register contents will be loaded by the function.
- */
-void OV2640_sccb_read_8bit_reg(uint8_t reg_id, unsigned char *reg_data_buf) {
-    // Mask the register ID to specify a read
-    uint8_t reg_id_masked = reg_id | 0x01;
-    struct io_descriptor *io;
-    i2c_m_sync_get_io_descriptor(&I2C_0, &io);
-    i2c_m_sync_enable(&I2C_0);
-    i2c_m_sync_set_slaveaddr(&I2C_0, OV2640_I2C_ADDR, I2C_M_SEVEN);
-    io_write(io, &reg_id_masked, 1);
-    io_read(io, reg_data_buf, 1);
+
+#define SCCB_SIC_H()      digitalWrite(scl_port,HIGH)	 	//SCL H
+#define SCCB_SIC_L()      digitalWrite(scl_port,LOW)		 	//SCL H
+
+#define SCCB_SID_H()      digitalWrite(sda_port,HIGH)   //SDA	H
+#define SCCB_SID_L()      digitalWrite(sda_port,LOW)    //SDA	H
+#define SCCB_DATA_IN      pinMode(sda_port, INPUT);
+#define SCCB_DATA_OUT     pinMode(sda_port, OUTPUT);
+
+#define SCCB_SID_STATE	  digitalRead(sda_port)
+
+void sccb_bus_init(void);
+void sccb_bus_start(void);
+void sccb_bus_stop(void);
+void sccb_bus_send_noack(void);
+void sccb_bus_send_ack(void);
+unsigned char sccb_bus_write_byte(unsigned char data);
+unsigned char sccb_bus_read_byte(void);
+
+extern unsigned char I2C_TIM;
+
+
+
+#define INPUT GPIO_DIRECTION_IN
+#define OUTPUT GPIO_DIRECTION_OUT
+
+#define HIGH  1
+#define LOW   0
+
+#define digitalWrite(pin, val) gpio_set_pin_level(pin, val)
+#define digitalRead(pin) gpio_get_pin_level(pin)
+#define pinMode(pin, val) gpio_set_pin_direction(pin, val)
+
+#define SCCB_SIC_H()      digitalWrite(scl_port,HIGH)        //SCL H
+#define SCCB_SIC_L()      digitalWrite(scl_port,LOW)            //SCL H
+
+#define SCCB_SID_H()      digitalWrite(sda_port,HIGH)   //SDA	H
+#define SCCB_SID_L()      digitalWrite(sda_port,LOW)    //SDA	H
+
+
+#define SCCB_DATA_IN      pinMode(sda_port, INPUT);
+#define SCCB_DATA_OUT     pinMode(sda_port, OUTPUT);
+
+#define SCCB_SID_STATE      digitalRead(sda_port)
+
+
+unsigned char I2C_TIM = 30;
+
+void sccb_bus_init(void) {
+    pinMode(sda_port, OUTPUT);
+    pinMode(scl_port, OUTPUT);
+    digitalWrite(sda_port, HIGH);
+    digitalWrite(scl_port, HIGH);
 }
 
-// TODO: return a status code (check the io_write/read & i2c_* calls!)
-/**
- * Reads a sensor register with an 8-bit address over I2C.
- * @param reg_id the ID of the register to write.
- * @param reg_data_buf a buffer in which the register contents will be loaded by the function.
- */
- // FIXME: `rdSensorReg16_8` writes 0x78 instead of the sensor address at the start and then writes 0x79 at the end --
- // WHY? and how do we do the equivalent thing using the I2C stuff here?
-void OV2640_sccb_read_16bit_reg(uint16_t reg_id, unsigned char *reg_data_buf) {
-    // Mask the register ID to specify a read
-    uint16_t reg_id_masked = reg_id | 0x01;
-    struct io_descriptor *io;
-    i2c_m_sync_get_io_descriptor(&I2C_0, &io);
-    i2c_m_sync_enable(&I2C_0);
-    // TODO: figure out why the sample code uses 0x78
-    i2c_m_sync_set_slaveaddr(&I2C_0, 0x78, I2C_M_SEVEN);
-    io_write(io, (uint8_t *) &reg_id_masked, 2);
-    io_read(io, reg_data_buf, 1);
+void sccb_bus_start(void) {
+    SCCB_SID_H();
+    delay_us(I2C_TIM);
+    SCCB_SIC_H();
+    delay_us(I2C_TIM);
+    SCCB_SID_L();
+    delay_us(I2C_TIM);
+    SCCB_SIC_L();
+    delay_us(I2C_TIM);
 }
 
-// TODO: return a status code (check the io_writes & i2c_* calls!)
-/**
- * Writes a byte to a sensor register with an 8-bit address over I2C.
- * @param reg_id the ID of the register to write.
- * @param reg_data the data (byte) to write to the register.
- */
-void OV2640_sccb_write_8bit_reg(uint8_t reg_id, uint8_t reg_data) {
-    int32_t err;
-    struct io_descriptor *io;
-    err = i2c_m_sync_get_io_descriptor(&I2C_0, &io);
-    if (err != ERR_NONE) {
-        // TODO: error
-        ASSERT(false);
-    }
-    err = i2c_m_sync_enable(&I2C_0);
-    if (err != ERR_NONE) {
-        // TODO: error
-        ASSERT(false);
-    }
-    // FIXME: figure out how to error check this -- it returns *the address*, NOT an error code!
-    i2c_m_sync_set_slaveaddr(&I2C_0, OV2640_I2C_ADDR, I2C_M_SEVEN);
-    // https://asf.microchip.com/docs/latest/samd21/html/group__group__sam0__utils__status__codes.html
-    // io_write should return the number of bytes (1) written
-    // FIXME: this is not returning 1!
-    io_write(io, &reg_id, 1);
-    io_write(io, &reg_data, 1);
-    int32_t bytes_written = io_write(io, &reg_id, 1);
-    if (bytes_written != 1) {
-        // TODO: error
-        ASSERT(false);
-    }
-    if (io_write(io, &reg_data, 1) != 1) {
-        // TODO: error
-        ASSERT(false);
-    }
+void sccb_bus_stop(void) {
+    SCCB_SID_L();
+    delay_us(I2C_TIM);
+    SCCB_SIC_H();
+    delay_us(I2C_TIM);
+    SCCB_SID_H();
+    delay_us(I2C_TIM);
 }
 
-// TODO: return a status code (check the io_writes & i2c_* calls!)
-/**
- * Writes a byte to a sensor register with a 16-bit address over I2C.
- * @param reg_id the ID of the register to write.
- * @param reg_data the data (byte) to write to the register.
- */
-void OV2640_sccb_write_16bit_reg(uint16_t reg_id, uint8_t reg_data) {
-    struct io_descriptor *io;
-    i2c_m_sync_get_io_descriptor(&I2C_0, &io);
-    i2c_m_sync_enable(&I2C_0);
-    i2c_m_sync_set_slaveaddr(&I2C_0, OV2640_I2C_ADDR, I2C_M_SEVEN);
-    // TODO: check this is okay (using length = 2)
-    // Do we want to be using i2c_m_sync_cmd_[read/write]?
-    // May be an issue for this one b/c we need *two* sensor addr bytes
-    io_write(io, (uint8_t *) &reg_id, 2);
-    io_write(io, &reg_data, 1);
+void sccb_bus_send_noack(void) {
+    SCCB_SID_H();
+    delay_us(I2C_TIM);
+    SCCB_SIC_H();
+    delay_us(I2C_TIM);
+    SCCB_SIC_L();
+    delay_us(I2C_TIM);
+    SCCB_SID_L();
+    delay_us(I2C_TIM);
 }
 
-// TODO: status code
-void OV2640_sccb_write_8bit_reg_array(const struct sensor_reg* reglist) {
-    int err = 0;
+void sccb_bus_send_ack(void) {
+    SCCB_SID_L();
+    delay_us(I2C_TIM);
+    SCCB_SIC_L();
+    delay_us(I2C_TIM);
+    SCCB_SIC_H();
+    delay_us(I2C_TIM);
+    SCCB_SIC_L();
+    delay_us(I2C_TIM);
+    SCCB_SID_L();
+    delay_us(I2C_TIM);
+}
+
+unsigned char sccb_bus_write_byte(unsigned char data) {
+    unsigned char i;
+    unsigned char tem;
+    for (i = 0; i < 8; i++) {
+        if ((data << i) & 0x80) {
+            SCCB_SID_H();
+        } else {
+            SCCB_SID_L();
+        }
+        delay_us(I2C_TIM);
+        SCCB_SIC_H();
+        delay_us(I2C_TIM);
+        SCCB_SIC_L();
+    }
+    SCCB_DATA_IN;
+    delay_us(I2C_TIM);
+    SCCB_SIC_H();
+    delay_us(I2C_TIM);
+    if (SCCB_SID_STATE) {
+        tem = 0;
+    } else {
+        tem = 1;
+    }
+
+    SCCB_SIC_L();
+    delay_us(I2C_TIM);
+    SCCB_DATA_OUT;
+    return tem;
+}
+
+unsigned char sccb_bus_read_byte(void) {
+    unsigned char i;
+    unsigned char read = 0;
+    SCCB_DATA_IN;
+    for (i = 8; i > 0; i--) {
+        delay_us(I2C_TIM);
+        SCCB_SIC_H();
+        delay_us(I2C_TIM);
+        read = read << 1;
+        if (SCCB_SID_STATE) {
+            read += 1;
+        }
+        SCCB_SIC_L();
+        delay_us(I2C_TIM);
+    }
+    SCCB_DATA_OUT;
+    return read;
+}
+
+void OV2640_sccb_write_8bit_reg(uint8_t regID, uint8_t regDat) {
+    delay_us(10);
+    sccb_bus_start();
+    if(sccb_bus_write_byte(OV2640_I2C_ADDR) == 0)
+    {
+        sccb_bus_stop();
+//        return 1;
+    }
+    delay_us(10);
+    if(sccb_bus_write_byte(regID) == 0)
+    {
+        sccb_bus_stop();
+//        return 2;
+    }
+    delay_us(10);
+    if(sccb_bus_write_byte(regDat)==0)
+    {
+        sccb_bus_stop();
+//        return 3;
+    }
+    sccb_bus_stop();
+//    return 0;
+}
+
+
+void OV2640_sccb_read_8bit_reg(unsigned char regID, unsigned char* regDat) {
+    delay_us(10);
+
+    sccb_bus_start();
+    if(sccb_bus_write_byte(OV2640_I2C_ADDR) == 0)
+    {
+        sccb_bus_stop();
+        //goto start;
+//        return 1;
+    }
+    delay_us(10);
+    if(sccb_bus_write_byte(regID)==0)//ID
+    {
+        sccb_bus_stop();
+        //goto start;
+//        return 2;
+    }
+    sccb_bus_stop();
+    delay_us(10);
+    sccb_bus_start();
+    if(sccb_bus_write_byte(OV2640_I2C_ADDR|0x01)==0)
+    {
+        sccb_bus_stop();
+        //goto start;
+//        return 3;
+    }
+    delay_us(10);
+    *regDat = sccb_bus_read_byte();
+    sccb_bus_send_noack();
+    sccb_bus_stop();
+//    return 0;
+}
+
+//I2C Array Write 8bit address, 8bit data
+void OV2640_sccb_write_8bit_reg_array(const struct sensor_reg reglist[]) {
     unsigned int reg_addr = 0;
     unsigned int reg_val = 0;
     const struct sensor_reg *next = reglist;
@@ -110,10 +218,81 @@ void OV2640_sccb_write_8bit_reg_array(const struct sensor_reg* reglist) {
     {
         reg_addr =next->reg;
         reg_val = next->val;
-        // err = OV2640_sccb_write_8bit_reg(reg_addr, reg_val);
         OV2640_sccb_write_8bit_reg(reg_addr, reg_val);
         delay_ms(10);
         next++;
     }
-    // return error
+
+//    return err;
 }
+
+void OV2640_sccb_write_16bit_reg(uint16_t regID, uint8_t regDat) {
+    sccb_bus_start();
+    if(0==sccb_bus_write_byte(OV2640_I2C_ADDR))
+    {
+        sccb_bus_stop();
+//        return(0);
+    }
+    delay_us(10);
+    if(0==sccb_bus_write_byte(regID>>8))
+    {
+        sccb_bus_stop();
+//        return(0);
+    }
+    delay_us(10);
+    if(0==sccb_bus_write_byte(regID))
+    {
+        sccb_bus_stop();
+//        return(0);
+    }
+    delay_us(10);
+    if(0==sccb_bus_write_byte(regDat))
+    {
+        sccb_bus_stop();
+//        return(0);
+    }
+    sccb_bus_stop();
+
+//    return(1);
+}
+
+void OV2640_sccb_read_16bit_reg(uint16_t regID, uint8_t* regDat) {
+    sccb_bus_start();
+    if(0==sccb_bus_write_byte(0x78))
+    {
+        sccb_bus_stop();
+//        return(0);
+    }
+    delay_us(20);
+    delay_us(20);
+    if(0==sccb_bus_write_byte(regID>>8))
+    {
+        sccb_bus_stop();
+//        return(0);
+    }
+    delay_us(20);
+    if(0==sccb_bus_write_byte(regID))
+    {
+        sccb_bus_stop();
+//        return(0);
+    }
+    delay_us(20);
+    sccb_bus_stop();
+
+    delay_us(20);
+
+
+    sccb_bus_start();
+    if(0==sccb_bus_write_byte(0x79))
+    {
+        sccb_bus_stop();
+//        return(0);
+    }
+    delay_us(20);
+    *regDat=sccb_bus_read_byte();
+    sccb_bus_send_noack();
+    sccb_bus_stop();
+//    return(1);
+}
+
+

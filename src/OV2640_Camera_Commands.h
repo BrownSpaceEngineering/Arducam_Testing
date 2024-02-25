@@ -10,7 +10,7 @@
 #include <atmel_start.h>
 
 // Chip select (alternately "CS," "SS," or "slave select") pin
-#define OV2640_CS GPIO(GPIO_PORTA, 5)
+#define OV2640_CS GPIO(GPIO_PORTD, 53)
 
 // Possible camera resolutions
 // TODO: decide which of these to keep
