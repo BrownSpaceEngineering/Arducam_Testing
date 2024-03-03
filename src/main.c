@@ -33,33 +33,39 @@ int main(void)
     resetFirmware(CAM_CS1, -1, -1, -1);
     ArduCAM_Init(sensor_model);
 
-    // Take photo
-    singleCapture(CAM_CS1);
+    REG_PORT_DIR1 |= (1<<30);
 
-    // Send over UART
-    struct io_descriptor *io;
+    while (1) {
+        REG_PORT_OUT1 &= ~(1<<30);
+        // Take photo
+        singleCapture(CAM_CS1);
+        REG_PORT_OUT1 |= (1<<30);
+
+        // Send over UART
+        struct io_descriptor *io;
 //    usart_sync_set_baud_rate(&USART_0, 9600);
-    usart_sync_get_io_descriptor(&USART_0, &io);
-    usart_sync_enable(&USART_0);
-    // Testing code to verify USART is working (it is!)
+        usart_sync_get_io_descriptor(&USART_0, &io);
+        usart_sync_enable(&USART_0);
+        // Testing code to verify USART is working (it is!)
 //    while (1) {
 //        io_write(io, (uint8_t *) "hello\n", 6);
 //        delay_ms(1000);
 //    }
 
-    uint8_t header[] = {0x75, 0x03, 0x30, 0x75, 0x03, 0x30};
-    io_write(io, (uint8_t *)header, sizeof(header));
+        uint8_t header[] = {0x75, 0x03, 0x30, 0x75, 0x03, 0x30};
+        io_write(io, (uint8_t *) header, sizeof(header));
 
-    // Send the image size -- MSBs first
-    // (N.b. this can only handle images up to ~65 KB, which may not be large enough)
-    uint8_t len_msbs = (length >> 8) & 0xff;
-    uint8_t len_lsbs = length & 0xff;
-    io_write(io, &len_msbs, 1);
-    io_write(io, &len_lsbs, 1);
+        // Send the image size -- MSBs first
+        // (N.b. this can only handle images up to ~65 KB, which may not be large enough)
+        uint8_t len_msbs = (length >> 8) & 0xff;
+        uint8_t len_lsbs = length & 0xff;
+        io_write(io, &len_msbs, 1);
+        io_write(io, &len_lsbs, 1);
 
-    int32_t bytes_written = io_write(io, (uint8_t *)readbuf, length);
-    if (bytes_written != length) {
-        ASSERT(0);
+        int32_t bytes_written = io_write(io, (uint8_t *) readbuf, length);
+        if (bytes_written != length) {
+            ASSERT(0);
+        }
     }
 //    for (int i = 0; i < length; i++) {
 //        io_write(io, (uint8_t *)(readbuf + i), 1);

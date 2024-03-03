@@ -16,12 +16,12 @@ void ArduCAM_Init(unsigned char model) {
         wrSensorRegs8_8(OV2640_JPEG);
         wrSensorReg8_8(0xff, 0x01);
         wrSensorReg8_8(0x15, 0x00);
-        wrSensorRegs8_8(OV2640_320x240_JPEG);
+        wrSensorRegs8_8(OV2640_640x480_JPEG);
     }
     else {
         wrSensorRegs8_8(OV2640_QVGA);
     }
-    OV2640_set_JPEG_size(OV2640_320x240);
+    OV2640_set_JPEG_size(OV2640_640x480);
 }
 
 void ArduCAM_CS_init(int CS1, int CS2, int CS3, int CS4) {
